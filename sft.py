@@ -4,6 +4,7 @@ from datasets import load_dataset
 import torch
 import torch.optim as optim
 import datetime
+from tqdm import tqdm
 
 SFT_DATASET = "Asap7772/cog_behav_all_strategies"
 
@@ -17,7 +18,7 @@ def main(args):
 
     for epoch in range(args.num_epochs):
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-        for batch in train_dataloader:
+        for batch in tqdm(train_dataloader):
             query_and_completion = []
             for i in range(len(batch['query'])):
                 query_and_completion.append(batch['query'][i] + batch['completion'][i])
@@ -48,13 +49,17 @@ def main(args):
             loss.backward()
             optimizer.step()
 
-    torch.save(model.state_dict(), f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}.pt')
+    cur_time = datetime.now().strftime("%H:%M:%S")
+    torch.save(
+        model.state_dict(),
+        f'./models/sft/{cur_time}_epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}.pt'
+    )
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_epochs', type=int, default=2)
-    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-4)
     args = parser.parse_args()
     main(args)
