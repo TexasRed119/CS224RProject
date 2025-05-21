@@ -30,9 +30,12 @@ def main(args):
                 return_attention_mask=False,
                 padding=True,
                 return_tensors='pt'
-            )['input_ids']
+            )
 
-            output = model(query_and_completion.to(device))
+            output = model(
+                query_and_completion['input_ids'].to(device),
+                attention_mask=query_and_completion['attention_mask'].to(device)
+            )
 
             loss = 0
             for i in range(len(batch['query'])):
