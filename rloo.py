@@ -44,8 +44,11 @@ def main(args):
             baselines = leave_one_out_sum / (args.batch_size - 1)
             # ^^ you might have to squeeze / unsqueeze depending on if rewards is (batch,) or (batch,1), but I think this will work as is
 
-            # ughhhh matt for the log_prob I will need the prompt mask again...
-            # i will leave your tokenization untouched, but we will need a method of getting a prompt mask for my implementation below
+            # we gotta make a prompt mask again...gonna retokinze prompts without the padding
+            prompt_unpadded = tokenizer(batch_prompt, return_tensors='pt', padding=False)
+            prompt_len = prompt_unpadded.shape[1]
+            prompt_mask = torch.ones_like(x_and_y["input_ids"])
+            prompt_mask[:, :prompt_len] = 0
             log_prob = compute_log_prob(model, x_and_y["input_ids"], x_and_y["attention_mask"], prompt_mask)
 
             loss = -((rewards - baselines) * log_prob).mean()
