@@ -48,7 +48,7 @@ def main(args):
             # i will leave your tokenization untouched, but we will need a method of getting a prompt mask for my implementation below
             log_prob = compute_log_prob(model, x_and_y["input_ids"], x_and_y["attention_mask"], prompt_mask)
 
-            loss = -((rewards - baselines) * log_probs).mean()
+            loss = -((rewards - baselines) * log_prob).mean()
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
