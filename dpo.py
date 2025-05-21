@@ -4,7 +4,6 @@ import argparse
 import torch.optim as optim
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
@@ -17,12 +16,12 @@ class DPO_Preprocessor():
 
     def __call__(self, element):
         prompt = element["prompt"]
-        preferred = element["chosen"]
-        dispreferred = element["rejected"]
+        preferred = self.format(element["chosen"])
+        dispreferred = self.format(element["rejected"])
 
         # have to use padding="max_length" and not padding=True since we are doing per element, not per batch
-        input_preferred = self.tokenizer(prompt + preferred, padding="max_length", return_tensors="pt")["input_ids"]
-        input_dispreferred = self.tokenizer(prompt + dispreferred, padding="max_length", return_tensors="pt")["input_ids"]
+        input_preferred = self.tokenizer(prompt + preferred, padding="max_length", return_tensors="pt")
+        input_dispreferred = self.tokenizer(prompt + dispreferred, padding="max_length", return_tensors="pt")
 
         # make mask for when we need to compute the loss without the prompt
         # this will be mulyiplied by the label log probs when computing the loss
@@ -30,16 +29,19 @@ class DPO_Preprocessor():
         prompt_tokens = self.tokenizer(prompt, return_tensors="pt")["input_ids"]
         prompt_len = prompt_tokens.shape[1]
         # mask everything that is part of the prompt: 1s after prompt, 0s in prompt
-        prompt_mask = torch.ones_like(input_preferred)
+        prompt_mask = torch.ones_like(input_preferred["input_ids"])
         prompt_mask[:, :prompt_len] = 0
 
         return {
-            "input_preferred": input_preferred.squeeze(0),
-            "input_dispreferred": input_dispreferred.squeeze(0),
+            "input_preferred": input_preferred["input_ids"].squeeze(0),
+            "input_dispreferred": input_dispreferred["input_ids"].squeeze(0),
             "attention_mask_preferred": input_preferred["attention_mask"].squeeze(0),
             "attention_mask_dispreferred": input_preferred["attention_mask"].squeeze(0),
             "prompt_mask": prompt_mask.squeeze(0)
             }
+    
+    def format(self, x):
+        return x[1]["content"]
 
 
 # todo: figure this out later, make it so we can use vanilla or cumulative
