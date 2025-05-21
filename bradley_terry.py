@@ -23,8 +23,8 @@ class RewardModel(nn.Module):
         parameters = list(self.base_model.parameters()) + list(self.output_layer.parameters())
         self.optimizer = torch.optim.AdamW(parameters)
 
-    def forward(self, x):
-        outputs = self.base_model(x, output_hidden_states=True)
+    def forward(self, input_ids, attn_mask):
+        outputs = self.base_model(input_ids=input_ids, attention_mask=attn_mask, output_hidden_states=True)
         last_hidden_state = outputs.hidden_states[-1]
         return self.output_layer(last_hidden_state)
 
