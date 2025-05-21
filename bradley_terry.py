@@ -18,10 +18,10 @@ class RewardModel(nn.Module):
         self.optimizer = torch.optim.AdamW(parameters)
 
     def forward(self, x):
-        outputs = self.base_model(x, output_hidden_states=True)
-        last_hidden_state = outputs.hidden_states[-1]
+        outputs = self.base_model(**x, output_hidden_states=True)
+        last_hidden_state = outputs.hidden_states[-1][:, -1, :]
         return self.output_layer(last_hidden_state)
 
 model = RewardModel()
 tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
-x = tokenizer(["hello", "world"], return_tensors='pt')["input_ids"]
+x = tokenizer(["hello", "world"], return_tensors='pt')
