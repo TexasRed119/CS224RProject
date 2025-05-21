@@ -20,13 +20,13 @@ class DPO_Preprocessor():
         dispreferred = self.format(element["rejected"])
 
         # have to use padding="max_length" and not padding=True since we are doing per element, not per batch
-        input_preferred = self.tokenizer(prompt + preferred, padding="max_length", return_tensors="pt")
-        input_dispreferred = self.tokenizer(prompt + dispreferred, padding="max_length", return_tensors="pt")
+        input_preferred = self.tokenizer(prompt + preferred, padding=True, return_tensors="pt")
+        input_dispreferred = self.tokenizer(prompt + dispreferred, padding=True, return_tensors="pt")
 
         # make mask for when we need to compute the loss without the prompt
         # this will be mulyiplied by the label log probs when computing the loss
         # first, compute prompt length so we can make prompt_mask
-        prompt_tokens = self.tokenizer(prompt, return_tensors="pt")["input_ids"]
+        prompt_tokens = self.tokenizer(prompt, padding=False, return_tensors="pt")["input_ids"]
         prompt_len = prompt_tokens.shape[1]
         # mask everything that is part of the prompt: 1s after prompt, 0s in prompt
         prompt_mask = torch.ones_like(input_preferred["input_ids"])
