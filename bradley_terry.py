@@ -31,7 +31,7 @@ class RewardModel(nn.Module):
 # gonna calculate my bradley terry loss
 # bradley terry low-key sounds like a goated wide reciever from the 1990s
 # if you told me he was on those troy aikman cowboy teams I would've believed you
-def bradley_terry_loss(inputs_w, inputs_l, mask_w, mask_l, model, prompt_mask):
+def bradley_terry_loss(inputs_w, inputs_l, mask_w, mask_l, model):
 
     reward_w = model(input_ids=inputs_w, attention_mask=mask_w)
     reward_l = model(input_ids=inputs_l, attention_mask=mask_l)
@@ -58,8 +58,7 @@ def main(args):
         for batch in tqdm(train_dataloader):
             inputs_w, inputs_l = batch["input_preferred"], batch["input_dispreferred"]
             mask_w, mask_l = batch["attention_mask_preferred"], batch["attention_mask_dispreferred"]
-            prompt_mask = batch["prompt_mask"]
-            loss = bradley_terry_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, prompt_mask=prompt_mask)
+            loss = bradley_terry_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model)
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
