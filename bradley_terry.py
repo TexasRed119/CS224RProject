@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from dpo.py import DPO_Preprocessor
+from dpo import DPO_Preprocessor
 import torch.nn.functional as F
 from datasets import load_dataset
 import argparse
