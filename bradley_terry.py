@@ -25,7 +25,7 @@ class RewardModel(nn.Module):
 
     def forward(self, input_ids, attn_mask):
         outputs = self.base_model(input_ids=input_ids, attention_mask=attn_mask, output_hidden_states=True)
-        last_hidden_state = outputs.hidden_states[-1]
+        last_hidden_state = outputs.hidden_states[-1][:, -1, :]
         return self.output_layer(last_hidden_state)
 
 # gonna calculate my bradley terry loss
