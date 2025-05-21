@@ -31,8 +31,8 @@ def main(args):
             model.train()
             with torch.no_grad():
                 rewards = reward_model(x_and_y['input_ids'], x_and_y['attention_mask'])
-            print()
-            
+
+                        
 
             loss = 0
             loss.backward()
