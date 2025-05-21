@@ -5,6 +5,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from datasets import load_dataset
 from tqdm import tqdm
 from bradley_terry import RewardModel
+from dpo import compute_log_prob
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 RLOO_DATASET = "HuggingFaceH4/ultrafeedback_binarized"
@@ -33,8 +34,21 @@ def main(args):
                 rewards = reward_model(x_and_y['input_ids'], x_and_y['attention_mask'])
             print()
             
+            # have no fear...tomas is here
+            # for loop would be sooooo easy but matt's gonna give me shit
+            # for calculating the baseline average across batch instead:
+            # lets make a matrix with diagonal masked out...simple matrix multiplcation w rewwards will give us the leaving one out sums . then we just divide k - 1
+            # current shape of rewards is gonna be (batch,1) multiple by our zero diagonal matrix of batch x batch
+            diagonal_zero_matrix = torch.ones((args.batch_size, args.batch_size)) - torch.eye(args.batch_size)
+            leave_one_out_sum = diagonal_zero_matrix @ rewards
+            baselines = leave_one_out_sum / (args.batch_size - 1)
+            # ^^ you might have to squeeze / unsqueeze depending on if rewards is (batch,) or (batch,1), but I think this will work as is
 
-            loss = 0
+            # ughhhh matt for the log_prob I will need the prompt mask again...
+            # i will leave your tokenization untouched, but we will need a method of getting a prompt mask for my implementation below
+            log_prob = compute_log_prob(model, x_and_y["input_ids"], x_and_y["attention_mask"], prompt_mask)
+
+            loss = -((rewards - baselines) * log_probs).mean()
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
