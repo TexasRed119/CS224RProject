@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from dpo.py import DPO_Preprocessor
+from dpo import DPO_Preprocessor
 import torch.nn.functional as F
 from datasets import load_dataset
 import argparse
@@ -33,8 +33,8 @@ class RewardModel(nn.Module):
 # if you told me he was on those troy aikman cowboy teams I would've believed you
 def bradley_terry_loss(inputs_w, inputs_l, mask_w, mask_l, model):
 
-    reward_w = model(input_ids=inputs_w, attention_mask=mask_w)
-    reward_l = model(input_ids=inputs_l, attention_mask=mask_l)
+    reward_w = model(input_ids=inputs_w, attn_mask=mask_w)
+    reward_l = model(input_ids=inputs_l, attn_mask=mask_l)
 
     loss = F.logsigmoid(reward_w - reward_l).mean()
 
