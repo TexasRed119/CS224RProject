@@ -25,7 +25,9 @@ def main(args):
             model.eval()
             batch_prompt = [example['prompt'][0] for i in range(args.batch_size)]
             tokenized_prompt = tokenizer(batch_prompt, return_tensors='pt', padding=True)
-            x_and_y = model.generate(**tokenized_prompt, max_new_tokens=1)  # todo: change max_new_tokens
+            x_and_y = model.generate(**tokenized_prompt, max_new_tokens=1)
+            x_and_y = tokenizer.batch_decode(x_and_y)
+            x_and_y = tokenizer(x_and_y)
             model.train()
             with torch.no_grad():
                 rewards = reward_model(x_and_y['input_ids'], x_and_y['attention_mask'])
