@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from dpo import DPO_Preprocessor
+from dpo_better import full_tokenize
 import torch.nn.functional as F
 from datasets import load_dataset
 import argparse
@@ -49,15 +49,15 @@ def main(args):
     
     train_dataset = load_dataset(BRADLEY_TERRY_DATASET, split="train_prefs")
 
-    preprocessor = DPO_Preprocessor(tokenizer)
-    train_dataset.map(preprocessor)
+    #preprocessor = DPO_Preprocessor(tokenizer)
+    # train_dataset = train_dataset.map(preprocessor)
+    
 
     # training
     for epoch in range(args.num_epochs):
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
         for batch in tqdm(train_dataloader):
-            inputs_w, inputs_l = batch["input_preferred"], batch["input_dispreferred"]
-            mask_w, mask_l = batch["attention_mask_preferred"], batch["attention_mask_dispreferred"]
+            inputs_w, inputs_l, mask_w, mask_l, _, _ = full_tokenize(batch)
             loss = bradley_terry_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model)
             loss.backward()
             optimizer.step()
