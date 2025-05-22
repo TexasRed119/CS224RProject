@@ -9,7 +9,7 @@ from tqdm import tqdm
 SFT_DATASET = "Asap7772/cog_behav_all_strategies"
 device = 'cuda'
 
-def do_epoch(model, split, dataset, tokenizer, optimizer):
+def do_epoch(model, split, dataset, tokenizer, optimizer, args):
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
     loss_item = 0
 
@@ -47,7 +47,8 @@ def do_epoch(model, split, dataset, tokenizer, optimizer):
             target_preds = torch.log(target_preds)
             x_loss = -torch.sum(target_preds)
             loss += x_loss
-            loss_item += x_loss.item()
+        loss = loss / len(batch['query'])
+        loss_item += loss.item()
         
         if split == 'train':
             optimizer.zero_grad()
@@ -64,21 +65,24 @@ def main(args):
     test_dataset = load_dataset(SFT_DATASET, split='test')
 
     for epoch in range(args.num_epochs):
-        train_loss, num_batches = do_epoch(model, 'train', train_dataset, tokenizer, optimizer)
+        train_loss, num_batches = do_epoch(model, 'train', train_dataset, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}")
-        val_loss, num_batches = do_epoch(model, 'test', test_dataset, tokenizer, optimizer)
+        print(train_loss)
+        print(num_batches)
+        val_loss, num_batches = do_epoch(model, 'test', test_dataset, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
+        print(val_loss)
+        print(num_batches)
 
-    cur_time = datetime.now().strftime("%H:%M:%S")
     torch.save(
         model.state_dict(),
-        f'./models/sft/{cur_time}_epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}.pt'
+        f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}.pt'
     )
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_epochs', type=int, default=4)
     parser.add_argument('--batch_size', type=int, default=4)
-    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-4)
+    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-6)
     args = parser.parse_args()
     main(args)
