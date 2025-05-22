@@ -15,7 +15,7 @@ def set_seed(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-def generate_completion(model, tokenizer, prompt, prokmpt_is_tokens=False, max_new_tokens=MAX_NEW_TOKENS):
+def generate_completion(model, tokenizer, prompt, prompt_is_tokens=False, max_new_tokens=MAX_NEW_TOKENS):
     model.eval()
     
     if prokmpt_is_tokens:

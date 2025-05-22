@@ -69,7 +69,7 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
             model,
             tokenizer,
             query_and_completion,
-            prokmpt_is_tokens=True,
+            prompt_is_tokens=True,
             max_new_tokens=None
         )
         print("Example Generation: ")
