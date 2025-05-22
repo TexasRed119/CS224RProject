@@ -108,16 +108,14 @@ def main(args):
     # model and ref_model these will both be the model from sft, thank you MATTHEUS!
     # ref_model is the frozen policy
     # AYO! YOU FROM BROOKLYN??
-    state_dict = torch.load('models/sft/epochs_4-batch_4-lr_1e-06.pt')
-    
-    config = Qwen2Config()
-    model = Qwen2ForCausalLM(config)
-    model.load_state_dict(state_dict)
-    ref_model = Qwen2ForCausalLM(config)
-    ref_model.load_state_dict(state_dict)
-    #model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)# .to(device)
-    #ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME) # .to(device)
+    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+    ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
     ref_model.eval()  # freeze this bad boy like frozone
+
+    state_dict = torch.load('./models/sft/epochs_2-batch_2-lr_0.0001.pt')
+    model.load_state_dict(state_dict)
+    ref_model.load_state_dict(state_dict)
+
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     
