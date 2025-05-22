@@ -7,6 +7,7 @@ import datetime
 from tqdm import tqdm
 import random
 import numpy as np
+from eval import generate_completion
 
 SFT_DATASET = "Asap7772/cog_behav_all_strategies"
 device = 'cuda'
@@ -64,6 +65,12 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
             loss.backward()
             optimizer.step()
 
+
+        example_generation = generate_completion(model, prompt_tokens=query_and_completion, tokenizer, None)
+        print("Example Generation: ")
+        print(example_generation)
+        model.train()
+
     return loss_item, len(dataloader)
 
 def main(args):
@@ -79,6 +86,7 @@ def main(args):
     for epoch in range(args.num_epochs):
         train_loss, num_batches = do_epoch(model, 'train', train_dataset, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}")
+        print("")
         val_loss, num_batches = do_epoch(model, 'test', test_dataset, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
