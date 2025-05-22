@@ -18,7 +18,7 @@ def set_seed(seed):
 def generate_completion(model, tokenizer, prompt, prompt_is_tokens=False, max_new_tokens=MAX_NEW_TOKENS):
     model.eval()
     
-    if prompt_is_tokens:
+    if prompt_is_tokens == False:
         # tokenize the prompt
         inputs = tokenizer(prompt, return_tensors='pt', padding=True, truncation=True).to(device)
     else:
