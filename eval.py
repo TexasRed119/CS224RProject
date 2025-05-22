@@ -15,14 +15,14 @@ def set_seed(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-def generate_completion(model, prompt_tokens=None, tokenizer, prompt, max_new_tokens=MAX_NEW_TOKENS):
+def generate_completion(model, tokenizer, prompt, prokmpt_is_tokens=False, max_new_tokens=MAX_NEW_TOKENS):
     model.eval()
     
-    if prompt_tokens:
+    if prokmpt_is_tokens:
         # tokenize the prompt
         inputs = tokenizer(prompt, return_tensors='pt', padding=True, truncation=True).to(device)
     else:
-        inputs = prompt_tokens
+        inputs = prokmpt_is_tokens
         
     
     prompt_length = inputs['input_ids'].shape[1]

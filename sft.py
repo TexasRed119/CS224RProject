@@ -65,8 +65,13 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
             loss.backward()
             optimizer.step()
 
-
-        example_generation = generate_completion(model, prompt_tokens=query_and_completion, tokenizer, None)
+        example_generation = generate_completion(
+            model,
+            tokenizer,
+            query_and_completion,
+            prokmpt_is_tokens=True,
+            max_new_tokens=None
+        )
         print("Example Generation: ")
         print(example_generation)
         model.train()
