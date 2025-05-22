@@ -67,12 +67,8 @@ def main(args):
     for epoch in range(args.num_epochs):
         train_loss, num_batches = do_epoch(model, 'train', train_dataset, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}")
-        print(train_loss)
-        print(num_batches)
         val_loss, num_batches = do_epoch(model, 'test', test_dataset, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
-        print(val_loss)
-        print(num_batches)
 
     torch.save(
         model.state_dict(),
