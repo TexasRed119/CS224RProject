@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import argparse
 import torch.optim as optim
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, Qwen2ForCausalLM, Qwen2Config
 from datasets import load_dataset
 from tqdm import tqdm
 
@@ -57,7 +57,7 @@ def dpo_loss(inputs_w, inputs_l, mask_w, mask_l, model, ref_model, beta, prompt_
     loss = -F.logsigmoid(logits).mean()
     return loss
 
-def full_tokenize(batch):
+def full_tokenize(batch, tokenizer):
     inputs_preferred = []
     inputs_dispreferred = []
     # getting prompts so we can make prompt mask
@@ -108,8 +108,13 @@ def main(args):
     # model and ref_model these will both be the model from sft, thank you MATTHEUS!
     # ref_model is the frozen policy
     # AYO! YOU FROM BROOKLYN??
-    model = torch.load()
-    ref_model = torch.load()
+    state_dict = torch.load('models/sft/epochs_4-batch_4-lr_1e-06.pt')
+    
+    config = Qwen2Config()
+    model = Qwen2ForCausalLM(config)
+    model.load_state_dict(state_dict)
+    ref_model = Qwen2ForCausalLM(config)
+    ref_model.load_state_dict(state_dict)
     #model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)# .to(device)
     #ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME) # .to(device)
     ref_model.eval()  # freeze this bad boy like frozone
@@ -129,7 +134,7 @@ def main(args):
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
         for batch in tqdm(train_dataloader):
 
-            inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l = full_tokenize(batch)
+            inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l = full_tokenize(batch, tokenizer)
 
             loss = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask_w=prompt_mask_w, prompt_mask_l=prompt_mask_l)
             loss.backward()
