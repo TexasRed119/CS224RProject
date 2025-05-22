@@ -108,9 +108,10 @@ def main(args):
     # model and ref_model these will both be the model from sft, thank you MATTHEUS!
     # ref_model is the frozen policy
     # AYO! YOU FROM BROOKLYN??
-    # torch load will be used?
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)# .to(device)
-    ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME) # .to(device)
+    model = torch.load()
+    ref_model = torch.load()
+    #model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)# .to(device)
+    #ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME) # .to(device)
     ref_model.eval()  # freeze this bad boy like frozone
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
