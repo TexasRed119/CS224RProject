@@ -22,7 +22,7 @@ def generate_completion(model, tokenizer, prompt, prompt_is_tokens=False, max_ne
         # tokenize the prompt
         inputs = tokenizer(prompt, return_tensors='pt', padding=True, truncation=True).to(device)
     else:
-        inputs = prompt_is_tokens
+        inputs = prompt
         
     
     prompt_length = inputs['input_ids'].shape[1]
