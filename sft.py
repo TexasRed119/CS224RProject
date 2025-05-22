@@ -5,9 +5,18 @@ import torch
 import torch.optim as optim
 import datetime
 from tqdm import tqdm
+import random
+import numpy as np
 
 SFT_DATASET = "Asap7772/cog_behav_all_strategies"
 device = 'cuda'
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 def do_epoch(model, split, dataset, tokenizer, optimizer, args):
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
@@ -58,6 +67,9 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
     return loss_item, len(dataloader)
 
 def main(args):
+    # Set random seed for reproducibility
+    set_seed(args.seed)
+    
     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
     model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B").to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
@@ -72,7 +84,7 @@ def main(args):
 
     torch.save(
         model.state_dict(),
-        f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}.pt'
+        f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-seed_{args.seed}.pt'
     )
 
 if __name__ == '__main__':
@@ -80,5 +92,6 @@ if __name__ == '__main__':
     parser.add_argument('--num_epochs', type=int, default=4)
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-6)
+    parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     args = parser.parse_args()
     main(args)
