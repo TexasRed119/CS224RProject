@@ -57,6 +57,51 @@ def dpo_loss(inputs_w, inputs_l, mask_w, mask_l, model, ref_model, beta, prompt_
     loss = -F.logsigmoid(logits).mean()
     return loss
 
+def full_tokenize(batch):
+    inputs_preferred = []
+    inputs_dispreferred = []
+    # getting prompts so we can make prompt mask
+    prompts = []
+    for i in range(len(batch['prompt'])):
+        prompts.append(batch['prompt'][i])
+        inputs_preferred.append(batch['prompt'][i] + format_hug(batch['chosen'])[i])
+        inputs_dispreferred.append(batch['prompt'][i] + format_hug(batch['rejected'])[i])
+
+    # preferred
+    inputs_preferred = tokenizer(
+        inputs_preferred,
+        padding=True,
+        return_tensors='pt'
+    )
+    inputs_w = inputs_preferred["input_ids"]
+    mask_w = inputs_preferred["attention_mask"]
+
+    # dispreffered
+    inputs_dispreferred = tokenizer(
+        inputs_dispreferred,
+        padding=True,
+        return_tensors='pt'
+    )
+    inputs_l = inputs_dispreferred["input_ids"]
+    mask_l = inputs_dispreferred["attention_mask"]
+
+    # making the masks, can't return a tensor because then they will be different lengths
+    # need to use 2 different masks due to different sequence lengths
+    prompt_tokens = tokenizer(
+        prompts,
+        padding=False,
+        return_tensors=None
+    )["input_ids"]
+    # mask everything that is part of the prompt: 1s after prompt, 0s in prompt
+    prompt_lens = [len(p) for p in prompt_tokens] 
+    prompt_mask_w = torch.ones_like(inputs_preferred["input_ids"])
+    prompt_mask_l = torch.ones_like(inputs_dispreferred["input_ids"])
+    for i in range(len(prompt_lens)):
+        prompt_len = prompt_lens[i]
+        prompt_mask_w[i, :prompt_len] = 0
+        prompt_mask_l[i, :prompt_len] = 0
+
+    return inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l
 
 def main(args):
 
@@ -82,56 +127,9 @@ def main(args):
     for epoch in range(args.num_epochs):
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
         for batch in tqdm(train_dataloader):
-            '''
-            inputs_w, inputs_l = batch["input_preferred"], batch["input_dispreferred"]
-            mask_w, mask_l = batch["attention_mask_preferred"], batch["attention_mask_dispreferred"]
-            prompt_mask = batch["prompt_mask"]
-            '''
 
-            inputs_preferred = []
-            inputs_dispreferred = []
-            # getting prompts so we can make prompt mask
-            prompts = []
-            for i in range(len(batch['prompt'])):
-                prompts.append(batch['prompt'][i])
-                inputs_preferred.append(batch['prompt'][i] + format_hug(batch['chosen'])[i])
-                inputs_dispreferred.append(batch['prompt'][i] + format_hug(batch['rejected'])[i])
+            inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l = full_tokenize(batch)
 
-            # preferred
-            inputs_preferred = tokenizer(
-                inputs_preferred,
-                padding=True,
-                return_tensors='pt'
-            )
-            inputs_w = inputs_preferred["input_ids"]
-            mask_w = inputs_preferred["attention_mask"]
-
-            # dispreffered
-            inputs_dispreferred = tokenizer(
-                inputs_dispreferred,
-                padding=True,
-                return_tensors='pt'
-            )
-            inputs_l = inputs_dispreferred["input_ids"]
-            mask_l = inputs_dispreferred["attention_mask"]
-
-            # making the masks, can't return a tensor because then they will be different lengths
-            # need to use 2 different masks due to different sequence lengths
-            prompt_tokens = tokenizer(
-                prompts,
-                padding=False,
-                return_tensors=None
-            )["input_ids"]
-            # mask everything that is part of the prompt: 1s after prompt, 0s in prompt
-            prompt_lens = [len(p) for p in prompt_tokens] 
-            prompt_mask_w = torch.ones_like(inputs_preferred["input_ids"])
-            prompt_mask_l = torch.ones_like(inputs_dispreferred["input_ids"])
-            for i in range(len(prompt_lens)):
-                prompt_len = prompt_lens[i]
-                prompt_mask_w[i, :prompt_len] = 0
-                prompt_mask_l[i, :prompt_len] = 0
-            
-            
             loss = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask_w=prompt_mask_w, prompt_mask_l=prompt_mask_l)
             loss.backward()
             optimizer.step()

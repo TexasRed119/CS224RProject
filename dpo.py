@@ -1,3 +1,4 @@
+'''
 import torch
 import torch.nn.functional as F
 import argparse
@@ -46,14 +47,6 @@ class DPO_Preprocessor():
         # mask everything that is part of the prompt: 1s after prompt, 0s in prompt
         prompt_mask = torch.ones_like(input_preferred["input_ids"])
         prompt_mask[:, :prompt_len] = 0
-
-        '''
-        print(type(input_preferred["input_ids"].squeeze(0)))
-        print(type(input_dispreferred["input_ids"].squeeze(0)))
-        print(type(input_preferred["attention_mask"].squeeze(0)))
-        print(type(input_preferred["attention_mask"].squeeze(0)))
-        print(type(prompt_mask))
-        '''
 
         return {
             "input_preferred": input_preferred["input_ids"].squeeze(0),
@@ -139,13 +132,7 @@ def main(args):
             inputs_w, inputs_l = batch["input_preferred"], batch["input_dispreferred"]
             mask_w, mask_l = batch["attention_mask_preferred"], batch["attention_mask_dispreferred"]
             prompt_mask = batch["prompt_mask"]
-            '''
-            print(type(inputs_w))
-            print(type(inputs_l))
-            print(type(mask_w))
-            print(type(mask_l))
-            print(type(prompt_mask))
-            '''
+            
             # fixing, was return from preprocessing as a list of tensors
             inputs_w = torch.stack(inputs_w)
             inputs_l = torch.stack(inputs_l)
@@ -170,3 +157,4 @@ if __name__ == '__main__':
     parser.add_argument('--beta', type=float, default=0.1)
     args = parser.parse_args()
     main(args)
+'''
