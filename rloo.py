@@ -32,7 +32,6 @@ def main(args):
             model.train()
             with torch.no_grad():
                 rewards = reward_model(x_and_y['input_ids'], x_and_y['attention_mask'])
-            print()
             
             # have no fear...tomas is here
             # for loop would be sooooo easy but matt's gonna give me shit
@@ -45,10 +44,13 @@ def main(args):
             # ^^ you might have to squeeze / unsqueeze depending on if rewards is (batch,) or (batch,1), but I think this will work as is
 
             # we gotta make a prompt mask again...gonna retokinze prompts without the padding
-            prompt_unpadded = tokenizer(batch_prompt, return_tensors='pt', padding=False)
-            prompt_len = prompt_unpadded.shape[1]
-            prompt_mask = torch.ones_like(x_and_y["input_ids"])
-            prompt_mask[:, :prompt_len] = 0
+            prompt_unpadded = tokenizer(batch_prompt, return_tensors=None, padding=False)["input_ids"]
+            prompt_lens = [len(p) for p in prompt_tokens] 
+            prompt_mask = torch.ones_like(inputs_preferred["input_ids"])
+            for i in range(len(prompt_lens)):
+                prompt_len = prompt_lens[i]
+                prompt_mask[i, :prompt_len] = 0
+
             log_prob = compute_log_prob(model, x_and_y["input_ids"], x_and_y["attention_mask"], prompt_mask)
 
             loss = -((rewards - baselines) * log_prob).mean()

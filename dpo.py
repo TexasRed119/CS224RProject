@@ -8,11 +8,26 @@ from tqdm import tqdm
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 DPO_DATASET = "HuggingFaceH4/ultrafeedback_binarized"
+device = 'cpu'
 
 
 class DPO_Preprocessor():
     def __init__(self, tokenizer):
-        self.tokenizer = tokenizer
+        self.tokenizer = tokenizer   
+        '''
+        # problems with max length 
+        Max length for prompt + preferred: 5818
+        Max length for prompt + dispreferred: 5697
+
+        context window for qwen is 2048... I'm going to truncate to help with memory
+        since I'm not doing by batch, I have to set the padding to the max_length...which means we might have memory issues
+        but if the max_length is not too long shouldnt be an issue
+
+        going to do 1024 but we can discuss....could do shorter and then extend the batch size
+
+        or just ditch my preprocessing so we can do longest sequence per batch...probably what I should do fuck fuck fuck 
+        '''
+        self.max_len = 1024
 
     def __call__(self, element):
         prompt = element["prompt"]
@@ -20,8 +35,8 @@ class DPO_Preprocessor():
         dispreferred = self.format(element["rejected"])
 
         # have to use padding="max_length" and not padding=True since we are doing per element, not per batch
-        input_preferred = self.tokenizer(prompt + preferred, padding=True, return_tensors="pt")
-        input_dispreferred = self.tokenizer(prompt + dispreferred, padding=True, return_tensors="pt")
+        input_preferred = self.tokenizer(prompt + preferred, padding="max_length", max_length=self.max_len, truncation=True, return_tensors="pt")
+        input_dispreferred = self.tokenizer(prompt + dispreferred, padding="max_length", max_length=self.max_len, truncation=True, return_tensors="pt")
 
         # make mask for when we need to compute the loss without the prompt
         # this will be mulyiplied by the label log probs when computing the loss
@@ -32,11 +47,19 @@ class DPO_Preprocessor():
         prompt_mask = torch.ones_like(input_preferred["input_ids"])
         prompt_mask[:, :prompt_len] = 0
 
+        '''
+        print(type(input_preferred["input_ids"].squeeze(0)))
+        print(type(input_dispreferred["input_ids"].squeeze(0)))
+        print(type(input_preferred["attention_mask"].squeeze(0)))
+        print(type(input_preferred["attention_mask"].squeeze(0)))
+        print(type(prompt_mask))
+        '''
+
         return {
             "input_preferred": input_preferred["input_ids"].squeeze(0),
             "input_dispreferred": input_dispreferred["input_ids"].squeeze(0),
             "attention_mask_preferred": input_preferred["attention_mask"].squeeze(0),
-            "attention_mask_dispreferred": input_preferred["attention_mask"].squeeze(0),
+            "attention_mask_dispreferred": input_dispreferred["attention_mask"].squeeze(0),
             "prompt_mask": prompt_mask.squeeze(0)
             }
     
@@ -97,8 +120,8 @@ def main(args):
     # ref_model is the frozen policy
     # AYO! YOU FROM BROOKLYN??
     # torch load will be used?
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
-    ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)# .to(device)
+    ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME) # .to(device)
     ref_model.eval()  # freeze this bad boy like frozone
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
@@ -107,7 +130,7 @@ def main(args):
 
     # using .map to get prompt + response inputs...fuck you mattheus I aint no bum
     preprocessor = DPO_Preprocessor(tokenizer)
-    train_dataset.map(preprocessor)
+    train_dataset = train_dataset.map(preprocessor)
 
     # training
     for epoch in range(args.num_epochs):
@@ -116,6 +139,23 @@ def main(args):
             inputs_w, inputs_l = batch["input_preferred"], batch["input_dispreferred"]
             mask_w, mask_l = batch["attention_mask_preferred"], batch["attention_mask_dispreferred"]
             prompt_mask = batch["prompt_mask"]
+            '''
+            print(type(inputs_w))
+            print(type(inputs_l))
+            print(type(mask_w))
+            print(type(mask_l))
+            print(type(prompt_mask))
+            '''
+            # fixing, was return from preprocessing as a list of tensors
+            inputs_w = torch.stack(inputs_w)
+            inputs_l = torch.stack(inputs_l)
+            mask_w = torch.stack(mask_w)
+            mask_l = torch.stack(mask_l)
+            prompt_mask = torch.stack(prompt_mask)
+            #print(mask_w)
+            #print(prompt_mask)
+            #print(isinstance(, torch.Tensor))
+            #print(isinstance(x, torch.Tensor))
             loss = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask=prompt_mask)
             loss.backward()
             optimizer.step()
