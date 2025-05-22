@@ -67,7 +67,7 @@ def main(args):
         train_loss, num_batches = do_epoch(model, 'train', train_dataset, tokenizer, optimizer)
         print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}")
         val_loss, num_batches = do_epoch(model, 'test', test_dataset, tokenizer, optimizer)
-        print(f"Epoch: {epoch}, Train loss: {val_loss / num_batches}")
+        print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
     cur_time = datetime.now().strftime("%H:%M:%S")
     torch.save(
