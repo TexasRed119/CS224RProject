@@ -60,10 +60,16 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
             loss.backward()
             optimizer.step()
 
+    left_tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B", padding_side='left')
+    left_query_and_completion = left_tokenizer(
+        batch['query'][0],
+        return_tensors='pt',
+        padding=True
+    )
     example_generation = generate_completion(
         model,
-        tokenizer,
-        query_and_completion.to(device),
+        left_tokenizer,
+        left_query_and_completion.to(device),
         prompt_is_tokens=True,
         max_new_tokens=None
     )
