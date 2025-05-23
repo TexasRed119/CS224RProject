@@ -1,8 +1,53 @@
-Epoch: 0, Train loss: 384.17264742851256
-Epoch: 0, Val loss: 7.016224002838134
-Epoch: 1, Train loss: 25.61762527561188
-Epoch: 1, Val loss: 2.710043430328369
-Epoch: 2, Train loss: 15.209887403488159
-Epoch: 2, Val loss: 1.6313136041164398
-Epoch: 3, Train loss: 11.880617288827896
-Epoch: 3, Val loss: 1.1203301906585694
+(cs224r_final) [ec2-user@ip-172-31-19-244 CS224RProject]$ python sft.py 
+100%|███████████████████████████████████████████████████████████████████████████████████████████████| 250/250 [01:52<00:00,  2.22it/s]
+Example Generation: 
+<think>
+Let me analyze this systematically:
+1. First, let's look at what we need
+Epoch: 0, Train loss: 286.213474609375
+
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████| 50/50 [00:07<00:00,  6.53it/s]
+Example Generation: 
+<think>
+Let me analyze this systematically:
+1. First, let's try to get close to
+Epoch: 0, Val loss: 260.197216796875
+100%|███████████████████████████████████████████████████████████████████████████████████████████████| 250/250 [01:54<00:00,  2.19it/s]
+Example Generation: 
+<think>
+Let me analyze this step-by-step:
+
+1. First, let's try to get
+Epoch: 1, Train loss: 223.22321560668945
+
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████| 50/50 [00:07<00:00,  6.43it/s]
+Example Generation: 
+<think>
+Let me analyze this step-by-step:
+
+1. First, let's try to get
+Epoch: 1, Val loss: 238.6978564453125
+100%|███████████████████████████████████████████████████████████████████████████████████████████████| 250/250 [01:53<00:00,  2.20it/s]
+Example Generation: 
+<think>
+Let me try to find a way to get to 96, which is close
+Epoch: 2, Train loss: 199.9694969177246
+
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████| 50/50 [00:07<00:00,  6.64it/s]
+Example Generation: 
+<think>
+Let me try to reach 37 first since it's closest to 39
+Epoch: 2, Val loss: 228.3256085205078
+100%|███████████████████████████████████████████████████████████████████████████████████████████████| 250/250 [01:53<00:00,  2.20it/s]
+Example Generation: 
+<think>
+Let's analyze this methodically:
+1. First, let's try to get closer
+Epoch: 3, Train loss: 183.2598541870117
+
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████| 50/50 [00:07<00:00,  6.59it/s]
+Example Generation: 
+<think>
+Let's analyze this methodically:
+1. First, let's try to get closer
+Epoch: 3, Val loss: 223.8537106323242
