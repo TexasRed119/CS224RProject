@@ -32,10 +32,9 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
         query_and_completion = []
         for i in range(len(batch['query'])):
             query_and_completion.append(batch['query'][i] + batch['completion'][i])
-        query_and_completion = tokenizer(
-            query_and_completion,
+        query_and_completion = tokenizer(query_and_completion,
             padding=True,
-            return_tensors='pt'
+            return_tensors='pt',
             truncation=True,
             max_length=2048
         )
@@ -85,7 +84,7 @@ def main(args):
     set_seed(args.seed)
     
     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
-    model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B").to(device)
+    model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B", sliding_window=None).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     train_dataset = load_dataset(SFT_DATASET, split='train')
     test_dataset = load_dataset(SFT_DATASET, split='test')
