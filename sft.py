@@ -36,6 +36,8 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
             query_and_completion,
             padding=True,
             return_tensors='pt'
+            truncation=True,
+            max_length=2048
         )
 
         output = model(
