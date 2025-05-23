@@ -8,6 +8,7 @@ from tqdm import tqdm
 import random
 import numpy as np
 from eval import generate_completion
+import torch.nn.functional as F
 
 SFT_DATASET = "Asap7772/cog_behav_all_strategies"
 device = 'cuda'
@@ -50,12 +51,7 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
             num_preds = len(completion_ids[0])
             pred_logits = output['logits'][i][pred_start:pred_start+num_preds]
             pred_probs = torch.nn.functional.softmax(pred_logits, dim=1)
-            completion_ids_col = completion_ids.reshape((-1, 1)).to(device)
-
-            target_preds = torch.gather(pred_probs, 1, completion_ids_col)
-            target_preds = torch.log(target_preds)
-            x_loss = -torch.sum(target_preds)
-            loss += x_loss
+            loss += F.nll_loss(torch.log(pred_probs), completion_ids.reshape(-1).to(device), reduction='sum')
         loss = loss / len(batch['query'])
         loss_item += loss.item()
         
