@@ -32,7 +32,7 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
     for batch in tqdm(dataloader):
         query_and_completion = []
         for i in range(len(batch['query'])):
-            query_and_completion.append(batch['query'][i] + batch['completion'][i])
+            query_and_completion.append(batch['query'][i] + ' ' + batch['completion'][i])
         query_and_completion = tokenizer(query_and_completion,
             padding=True,
             return_tensors='pt'
