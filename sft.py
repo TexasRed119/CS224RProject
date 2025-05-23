@@ -34,9 +34,7 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
             query_and_completion.append(batch['query'][i] + batch['completion'][i])
         query_and_completion = tokenizer(query_and_completion,
             padding=True,
-            return_tensors='pt',
-            truncation=True,
-            max_length=2048
+            return_tensors='pt'
         )
 
         output = model(
