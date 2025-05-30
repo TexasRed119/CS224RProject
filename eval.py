@@ -6,7 +6,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-MAX_NEW_TOKENS = 256
+MAX_NEW_TOKENS = 2056
 
 def set_seed(seed):
     random.seed(seed)
@@ -55,14 +55,13 @@ def main():
     
     # load model
     print("Loading model and tokenizer")
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    tokenizer.pad_token = tokenizer.eos_token  
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, left_padding=True)
     
     model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
     
     # load weights
     print("\nLoading trained weights")
-    checkpoint_path = 'epochs_4-batch_4-lr_1e-06.pt'
+    checkpoint_path = '/home/ec2-user/CS224RProject/models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt'
     
     try:
         state_dict = torch.load(checkpoint_path, map_location=device)
@@ -75,17 +74,17 @@ def main():
     model = model.to(device)
     model.eval()
     
-    # Load evaluation dataset
+    # load evaluation dataset
     print("\nLoading dataset")
     eval_dataset = load_dataset("Asap7772/cog_behav_all_strategies", split="test")
     
     print("\nGenerating completions for samples:\n")
-    for i in range(min(5, len(eval_dataset))):
+    for i in range(len(eval_dataset)):
         example = eval_dataset[i]
         
         print(f"\nSample {i+1}:")
         print(f"Query: {example['query']}")
-        print(f"Ground truth: {example['completion']}")
+        # print(f"Ground truth: {example['completion']}")
         
         # generation
         print("Generating model completion")

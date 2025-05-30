@@ -1,0 +1,200 @@
+{"num": [15, 5, 75, 90], "target": 21, "expression": "90 + (90/15)"}
+{"num": [12, 71, 17, 99], "target": 1, "expression": "(17 + 12) - 99"}
+{"num": [51, 50, 5, 14], "target": 55, "expression": null}
+{"num": [83, 48, 18, 49], "target": 64, "expression": null}
+{"num": [85, 84, 45], "target": 46, "expression": "85 - 84 + 45"}
+{"num": [0, 97, 23], "target": 0, "expression": null}
+{"num": [39, 7, 18], "target": 64, "expression": null}
+{"num": [61, 20, 48, 89], "target": 82, "expression": null}
+{"num": [7, 13, 68], "target": 23, "expression": null}
+{"num": [28, 3, 29, 71], "target": 42, "expression": "3"}
+{"num": [77, 15, 19], "target": 81, "expression": "77 - 15 + 19"}
+{"num": [12, 2, 68, 69], "target": 13, "expression": "12 + 12"}
+{"num": [54, 33, 2], "target": 23, "expression": "54 - 33 + 2"}
+{"num": [54, 7, 91, 73], "target": 65, "expression": null}
+{"num": [42, 37, 1], "target": 79, "expression": null}
+{"num": [28, 13, 77, 82], "target": 46, "expression": null}
+{"num": [8, 74, 65, 10], "target": 9, "expression": null}
+{"num": [92, 32, 4], "target": 56, "expression": null}
+{"num": [82, 52, 35], "target": 99, "expression": null}
+{"num": [97, 61, 17], "target": 19, "expression": "97 - 61 - 17"}
+{"num": [34, 10, 42], "target": 86, "expression": "42 + (10 + 34)"}
+{"num": [74, 46, 90], "target": 30, "expression": "90 - 46 + 74"}
+{"num": [32, 26, 45], "target": 51, "expression": null}
+{"num": [88, 88, 44], "target": 44, "expression": null}
+{"num": [74, 22, 44], "target": 8, "expression": "8"}
+{"num": [62, 41, 14], "target": 35, "expression": "62 - 41 + 14"}
+{"num": [15, 31, 43, 29], "target": 60, "expression": "31 + 15"}
+{"num": [69, 37, 21, 63], "target": 22, "expression": "69 + 37 - 63 - 21"}
+{"num": [18, 89, 41], "target": 66, "expression": "89 - 41 + 18"}
+{"num": [14, 14, 77, 44], "target": 6, "expression": "28"}
+{"num": [31, 12, 16, 1], "target": 36, "expression": null}
+{"num": [4, 29, 31, 21], "target": 43, "expression": "29 + 21"}
+{"num": [49, 57, 9], "target": 97, "expression": "57 + 49 - 9"}
+{"num": [68, 24, 36], "target": 8, "expression": "68 - 36 + 24"}
+{"num": [65, 9, 8], "target": 82, "expression": "65 + 8 + 9"}
+{"num": [60, 93, 0, 91], "target": 60, "expression": null}
+{"num": [27, 36, 56], "target": 47, "expression": "36 + 27"}
+{"num": [82, 82, 98], "target": 98, "expression": "82 - 82 * 98"}
+{"num": [56, 41, 3], "target": 12, "expression": null}
+{"num": [5, 12, 87, 20], "target": 60, "expression": null}
+{"num": [24, 36, 4], "target": 33, "expression": null}
+{"num": [10, 72, 13, 6], "target": 4, "expression": null}
+{"num": [40, 70, 22], "target": 88, "expression": "70 - 40"}
+{"num": [93, 96, 66], "target": 63, "expression": null}
+{"num": [9, 4, 74], "target": 87, "expression": "74 + 4 + 9"}
+{"num": [64, 13, 2], "target": 49, "expression": null}
+{"num": [50, 40, 73], "target": 17, "expression": "73 - 50 - 4 - 2"}
+{"num": [56, 14, 10, 60], "target": 0, "expression": null}
+{"num": [8, 6, 8], "target": 40, "expression": null}
+{"num": [86, 69, 98], "target": 57, "expression": null}
+{"num": [79, 71, 7], "target": 15, "expression": "79"}
+{"num": [0, 3, 60, 86], "target": 23, "expression": null}
+{"num": [18, 90, 5], "target": 36, "expression": "18 + (90/5) - 5"}
+{"num": [76, 26, 33, 42], "target": 41, "expression": "(76 - 42) + 33 - 26"}
+{"num": [72, 16, 8], "target": 3, "expression": null}
+{"num": [55, 90, 98], "target": 63, "expression": null}
+{"num": [98, 10, 34], "target": 54, "expression": "98 - 34 - 10"}
+{"num": [86, 78, 32], "target": 40, "expression": null}
+{"num": [55, 33, 2], "target": 86, "expression": "55 + 33 - 2"}
+{"num": [4, 35, 4], "target": 43, "expression": null}
+{"num": [99, 86, 36], "target": 49, "expression": "86 - 36 - 99"}
+{"num": [58, 41, 38, 15], "target": 40, "expression": "41 - 15"}
+{"num": [69, 45, 5], "target": 60, "expression": null}
+{"num": [27, 76, 31, 62], "target": 44, "expression": "76 - 27"}
+{"num": [60, 73, 30, 78], "target": 95, "expression": "78 - 60 - (73 - 30) + 95"}
+{"num": [37, 89, 54], "target": 2, "expression": null}
+{"num": [73, 52, 69], "target": 56, "expression": null}
+{"num": [2, 45, 21, 45], "target": 71, "expression": "45 + 45 - 21 + 2"}
+{"num": [48, 85, 10, 55], "target": 68, "expression": "expression"}
+{"num": [30, 19, 40, 15], "target": 66, "expression": null}
+{"num": [42, 42, 46], "target": 38, "expression": "42 + 42 - 46"}
+{"num": [27, 76, 17], "target": 86, "expression": null}
+{"num": [22, 98, 33, 44], "target": 1, "expression": null}
+{"num": [9, 79, 31, 52], "target": 67, "expression": null}
+{"num": [70, 95, 93], "target": 72, "expression": "93 - 70 + 95 - 23"}
+{"num": [45, 31, 1], "target": 76, "expression": null}
+{"num": [79, 14, 27], "target": 66, "expression": "(79 - 27) + 14"}
+{"num": [57, 71, 6, 42], "target": 22, "expression": null}
+{"num": [92, 55, 49, 72], "target": 14, "expression": "92 - 55"}
+{"num": [11, 80, 16, 64], "target": 70, "expression": "EXPRESSION"}
+{"num": [25, 78, 60], "target": 7, "expression": "78 - 25"}
+{"num": [36, 96, 85, 35], "target": 82, "expression": "36 + 11 + 35"}
+{"num": [99, 84, 8], "target": 23, "expression": "(99 - 84) + 8"}
+{"num": [91, 41, 15], "target": 65, "expression": "91 - 41 + 15"}
+{"num": [13, 0, 2, 75], "target": 0, "expression": "2 + 75 + 13"}
+{"num": [79, 55, 28], "target": 52, "expression": "79 - 55 + 28"}
+{"num": [3, 12, 55], "target": 46, "expression": null}
+{"num": [50, 19, 27, 49], "target": 53, "expression": "53"}
+{"num": [75, 24, 47], "target": 52, "expression": "75 - 47 + 24"}
+{"num": [90, 56, 62], "target": 84, "expression": "(90 - 62) * 56 / 3"}
+{"num": [45, 11, 4, 0], "target": 89, "expression": "1 + 2 + 4"}
+{"num": [36, 9, 30], "target": 57, "expression": "30 + 36 - 9"}
+{"num": [60, 27, 19], "target": 68, "expression": null}
+{"num": [0, 91, 64, 32], "target": 0, "expression": null}
+{"num": [10, 29, 48, 0], "target": 29, "expression": null}
+{"num": [2, 50, 55], "target": 7, "expression": null}
+{"num": [7, 21, 20, 22], "target": 26, "expression": null}
+{"num": [44, 64, 94], "target": 14, "expression": "64 + 44 - 94"}
+{"num": [63, 75, 46], "target": 92, "expression": "75 + 63 - 46"}
+{"num": [92, 46, 71], "target": 67, "expression": null}
+{"num": [75, 26, 33, 27], "target": 95, "expression": "75 + 26 - 33 + 27"}
+{"num": [61, 63, 57], "target": 55, "expression": "(63 - 4) - 4"}
+{"num": [79, 12, 22], "target": 69, "expression": "79 - 12 + 2"}
+{"num": [61, 22, 41], "target": 80, "expression": null}
+{"num": [1, 48, 93], "target": 46, "expression": null}
+{"num": [71, 92, 67], "target": 46, "expression": "92 - 71 + 67"}
+{"num": [21, 38, 73], "target": 56, "expression": null}
+{"num": [86, 62, 87, 71], "target": 40, "expression": "87 - 62 + 86 - 71"}
+{"num": [36, 4, 14], "target": 18, "expression": "14 + (36/4) - 14"}
+{"num": [93, 76, 9], "target": 26, "expression": "93 - 76 + 9"}
+{"num": [38, 65, 19], "target": 84, "expression": null}
+{"num": [34, 38, 6], "target": 2, "expression": "1"}
+{"num": [47, 95, 72], "target": 24, "expression": null}
+{"num": [8, 43, 51], "target": 0, "expression": "43 - 51 + 8"}
+{"num": [58, 35, 57], "target": 36, "expression": "58 - 35"}
+{"num": [96, 43, 40, 95], "target": 4, "expression": null}
+{"num": [60, 56, 98, 13], "target": 5, "expression": null}
+{"num": [42, 17, 34, 66], "target": 91, "expression": null}
+{"num": [16, 8, 45], "target": 47, "expression": null}
+{"num": [95, 57, 64, 62], "target": 36, "expression": "95 - 57 + 62 - 64"}
+{"num": [12, 14, 38], "target": 64, "expression": null}
+{"num": [7, 11, 82, 91], "target": 27, "expression": null}
+{"num": [30, 20, 48], "target": 72, "expression": null}
+{"num": [97, 0, 50, 28], "target": 69, "expression": null}
+{"num": [78, 49, 51, 42], "target": 20, "expression": "78 - 49 + 51 - 42"}
+{"num": [36, 48, 49, 55], "target": 92, "expression": "(55 - 48) + (36 + 49)"}
+{"num": [24, 4, 68, 9], "target": 19, "expression": null}
+{"num": [6, 38, 86], "target": 54, "expression": "38 + 6"}
+{"num": [17, 84, 28, 77], "target": 91, "expression": null}
+{"num": [50, 60, 86], "target": 76, "expression": "86 - 60 + 50"}
+{"num": [54, 62, 47], "target": 69, "expression": null}
+{"num": [99, 92, 88], "target": 95, "expression": null}
+{"num": [26, 13, 7], "target": 46, "expression": "26 + 13 + 7"}
+{"num": [96, 99, 40], "target": 37, "expression": null}
+{"num": [57, 26, 13], "target": 44, "expression": "57 - 13"}
+{"num": [74, 13, 52], "target": 9, "expression": "(74 - 13) + 52"}
+{"num": [52, 27, 14], "target": 65, "expression": "52 + 27 - 14"}
+{"num": [9, 75, 91], "target": 25, "expression": "91 - 75 + 9"}
+{"num": [97, 6, 63, 1], "target": 41, "expression": "97 - 63 + 6"}
+{"num": [84, 28, 55, 25], "target": 32, "expression": "84 - 28"}
+{"num": [5, 33, 33], "target": 5, "expression": null}
+{"num": [0, 45, 25], "target": 0, "expression": null}
+{"num": [3, 90, 55], "target": 38, "expression": "90 - 55 + 3"}
+{"num": [9, 28, 66], "target": 47, "expression": null}
+{"num": [23, 23, 69], "target": 70, "expression": "23 + 23 + 69 - 1"}
+{"num": [84, 3, 25], "target": 62, "expression": "84 - 25 + 3"}
+{"num": [18, 24, 61], "target": 55, "expression": "61/24 * 18 * 18"}
+{"num": [91, 9, 5], "target": 95, "expression": "91 - 5 + 9"}
+{"num": [81, 93, 80], "target": 94, "expression": "93 - 1 + 2"}
+{"num": [48, 79, 36], "target": 91, "expression": "79 + 48 - 36"}
+{"num": [78, 5, 12], "target": 61, "expression": "78 - 12 - 5"}
+{"num": [29, 63, 14], "target": 78, "expression": "63 + 29 - 14"}
+{"num": [53, 7, 87, 43], "target": 90, "expression": null}
+{"num": [43, 28, 67], "target": 82, "expression": "67 + 28 - 43 + 3"}
+{"num": [22, 80, 44], "target": 58, "expression": null}
+{"num": [18, 21, 21], "target": 18, "expression": "18 + 21"}
+{"num": [42, 40, 60], "target": 62, "expression": null}
+{"num": [20, 32, 41], "target": 93, "expression": "41 + 32 + (20 - 10)"}
+{"num": [64, 43, 9], "target": 98, "expression": "64 + 43 - 9"}
+{"num": [76, 89, 98, 25], "target": 92, "expression": null}
+{"num": [69, 34, 55, 86], "target": 4, "expression": "86 - 69 + 34 - 55"}
+{"num": [0, 42, 19, 68], "target": 7, "expression": "68 - 42 - 19"}
+{"num": [35, 3, 32], "target": 64, "expression": null}
+{"num": [94, 60, 33], "target": 67, "expression": "94 - 33 + (60 / 10)"}
+{"num": [54, 74, 46], "target": 82, "expression": null}
+{"num": [49, 32, 17], "target": 98, "expression": "49 + 49"}
+{"num": [64, 13, 55, 11], "target": 72, "expression": "64 - (55 - 11 + 13)"}
+{"num": [16, 41, 67], "target": 42, "expression": "67 - 41 + 16"}
+{"num": [34, 11, 22], "target": 17, "expression": "34 - 11 - 22"}
+{"num": [96, 51, 2], "target": 47, "expression": "96 - 51 + 2"}
+{"num": [39, 46, 15], "target": 70, "expression": "and"}
+{"num": [8, 66, 7], "target": 81, "expression": null}
+{"num": [14, 14, 59], "target": 59, "expression": "14 * 14 - 59"}
+{"num": [45, 26, 60, 68], "target": 63, "expression": null}
+{"num": [45, 76, 57], "target": 64, "expression": null}
+{"num": [25, 82, 11], "target": 96, "expression": null}
+{"num": [24, 0, 37, 64], "target": 24, "expression": null}
+{"num": [21, 6, 9, 22], "target": 58, "expression": "22 + 9"}
+{"num": [81, 7, 23, 55], "target": 56, "expression": "81 - 23 - 55"}
+{"num": [20, 38, 63, 65], "target": 60, "expression": null}
+{"num": [70, 76, 90], "target": 84, "expression": "76 - 70 + 90"}
+{"num": [31, 29, 63], "target": 65, "expression": "31 - 29 + 63"}
+{"num": [38, 12, 41], "target": 9, "expression": "41 - 38"}
+{"num": [25, 25, 39], "target": 89, "expression": "25 + 25 + 39"}
+{"num": [44, 0, 5], "target": 44, "expression": null}
+{"num": [53, 32, 24], "target": 45, "expression": "53 - 32 + 24"}
+{"num": [78, 0, 32, 74], "target": 36, "expression": null}
+{"num": [91, 61, 91], "target": 61, "expression": null}
+{"num": [82, 82, 22], "target": 22, "expression": "82 - 82 * 22 / 22"}
+{"num": [82, 55, 0], "target": 0, "expression": "82 - 55 + 0"}
+{"num": [93, 67, 57], "target": 83, "expression": "93 - (67 - 57)"}
+{"num": [97, 95, 8, 88], "target": 98, "expression": null}
+{"num": [63, 70, 40], "target": 36, "expression": null}
+{"num": [36, 61, 1], "target": 97, "expression": "61 + 36"}
+{"num": [36, 48, 4], "target": 3, "expression": "48/36 * 4"}
+{"num": [6, 78, 1], "target": 84, "expression": "78 + 6"}
+{"num": [7, 59, 43, 82], "target": 73, "expression": null}
+{"num": [85, 23, 42], "target": 20, "expression": "85 - 42 - 23"}
+{"num": [97, 36, 26, 39], "target": 43, "expression": null}
+{"num": [35, 29, 80, 88], "target": 72, "expression": null}
