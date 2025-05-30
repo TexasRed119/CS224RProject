@@ -3,15 +3,13 @@ import argparse
 from datasets import load_dataset
 import torch
 import torch.optim as optim
-import datetime
-from tqdm import tqdm
 import random
 import numpy as np
-from eval import generate_completion
-import torch.nn.functional as F
+from do_epoch import sft_do_epoch
+from curriculum_dataset import CurriculumDataset
 
 SFT_DATASET = "Asap7772/cog_behav_all_strategies"
-device = 'cuda'
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def set_seed(seed):
     random.seed(seed)
@@ -20,69 +18,33 @@ def set_seed(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-def do_epoch(model, split, dataset, tokenizer, optimizer, args, curriculum_init=False):
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle = not curriculum_init)
-    loss_item = 0
-    all_losses = torch.empty(0, dtype=torch.float32)
-
-    if split == 'train':
-        model.train()
-    elif split == 'test' or curriculum_init:
-        model.eval()
-
-    for batch in tqdm(dataloader):
-        query_and_completion = []
-        for i in range(len(batch['query'])):
-            query_and_completion.append(batch['query'][i] + ' ' + batch['completion'][i])
-        query_and_completion = tokenizer(query_and_completion,
-            padding=True,
-            return_tensors='pt'
-        )
-
-        output = model(
-            query_and_completion['input_ids'].to(device),
-            attention_mask=query_and_completion['attention_mask'].to(device)
-        )
-
-        loss = 0
-        for i in range(len(batch['query'])):
-            query_ids = tokenizer.encode(batch['query'][i])
-            completion_ids = tokenizer.encode(batch['completion'][i], return_tensors='pt')
-            pred_start = len(query_ids)-1
-            num_preds = len(completion_ids[0])
-            pred_logits = output['logits'][i][pred_start:pred_start+num_preds]
-            pred_probs = torch.nn.functional.softmax(pred_logits, dim=1)
-
-            losses = F.nll_loss(torch.log(pred_probs), completion_ids.reshape(-1).to(device), reduction='none')
-            loss += losses.sum()
-            if curriculum_init:
-                all_losses = torch.cat([all_losses, losses])
-
-        loss = loss / len(batch['query'])
-        loss_item += loss.item()
-        
-        if split == 'train':
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-    return loss_item, len(dataloader), all_losses
-
 def main(args):
     # Set random seed for reproducibility
     set_seed(args.seed)
     
     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
-    model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B", sliding_window=None).to(device)
+    model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B", sliding_window=None).to(DEVICE)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
-    train_dataset = load_dataset(SFT_DATASET, split='train')
+
     test_dataset = load_dataset(SFT_DATASET, split='test')
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size)
 
     for epoch in range(args.num_epochs):
-        train_loss, num_batches, _ = do_epoch(model, 'train', train_dataset, tokenizer, optimizer, args)
-        print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}")
-        print("")
-        val_loss, num_batches, _ = do_epoch(model, 'test', test_dataset, tokenizer, optimizer, args)
+        train_dataset = CurriculumDataset(
+            model=model,
+            split='train',
+            dataset_name=SFT_DATASET,
+            tokenizer=tokenizer,
+            optimizer=optimizer,
+            args=args,
+            do_epoch=sft_do_epoch,
+            cur_epoch=epoch,
+            num_epochs=args.num_epochs
+        )
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+        train_loss, num_batches, _ = sft_do_epoch(model, 'train', train_dataloader, tokenizer, optimizer, args)
+        print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}\n")
+        val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
     torch.save(
