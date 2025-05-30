@@ -18,7 +18,7 @@ class RewardModel(nn.Module):
 
         self.base_model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B")
         hidden_dim = self.base_model.config.hidden_size
-        self.output_layer = nn.Linear(hidden_dim, 1)
+        self.output_layer = nn.Linear(hidden_dim, 1)  # todo: initialize layer
 
         parameters = list(self.base_model.parameters()) + list(self.output_layer.parameters())
         self.optimizer = torch.optim.AdamW(parameters)
