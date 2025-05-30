@@ -20,13 +20,14 @@ def set_seed(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-def do_epoch(model, split, dataset, tokenizer, optimizer, args):
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+def do_epoch(model, split, dataset, tokenizer, optimizer, args, curriculum_init=False):
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle = not curriculum_init)
     loss_item = 0
+    all_losses = torch.empty(0, dtype=torch.float32)
 
     if split == 'train':
         model.train()
-    elif split == 'test':
+    elif split == 'test' or curriculum_init:
         model.eval()
 
     for batch in tqdm(dataloader):
@@ -51,7 +52,12 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
             num_preds = len(completion_ids[0])
             pred_logits = output['logits'][i][pred_start:pred_start+num_preds]
             pred_probs = torch.nn.functional.softmax(pred_logits, dim=1)
-            loss += F.nll_loss(torch.log(pred_probs), completion_ids.reshape(-1).to(device), reduction='sum')
+
+            losses = F.nll_loss(torch.log(pred_probs), completion_ids.reshape(-1).to(device), reduction='none')
+            loss += losses.sum()
+            if curriculum_init:
+                all_losses = torch.cat([all_losses, losses])
+
         loss = loss / len(batch['query'])
         loss_item += loss.item()
         
@@ -60,24 +66,7 @@ def do_epoch(model, split, dataset, tokenizer, optimizer, args):
             loss.backward()
             optimizer.step()
 
-    left_tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B", padding_side='left')
-    left_query_and_completion = left_tokenizer(
-        batch['query'][0],
-        return_tensors='pt',
-        padding=True
-    )
-    example_generation = generate_completion(
-        model,
-        left_tokenizer,
-        left_query_and_completion.to(device),
-        prompt_is_tokens=True,
-        max_new_tokens=None
-    )
-    print("Example Generation: ")
-    print(example_generation)
-    model.train()
-
-    return loss_item, len(dataloader)
+    return loss_item, len(dataloader), all_losses
 
 def main(args):
     # Set random seed for reproducibility
@@ -90,10 +79,10 @@ def main(args):
     test_dataset = load_dataset(SFT_DATASET, split='test')
 
     for epoch in range(args.num_epochs):
-        train_loss, num_batches = do_epoch(model, 'train', train_dataset, tokenizer, optimizer, args)
+        train_loss, num_batches, _ = do_epoch(model, 'train', train_dataset, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}")
         print("")
-        val_loss, num_batches = do_epoch(model, 'test', test_dataset, tokenizer, optimizer, args)
+        val_loss, num_batches, _ = do_epoch(model, 'test', test_dataset, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
     torch.save(
