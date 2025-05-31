@@ -16,10 +16,11 @@ class CurriculumDataset(TorchDataset):
             args,
             do_epoch,
             cur_epoch,
-            num_epochs
+            num_epochs,
+            anti  # TODO: implement curriculum learning
         ):
 
-        dataset = load_dataset(dataset_name, split=split)  # TODO: change back to loading split
+        dataset = load_dataset(dataset_name, split=split)
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
         _, _, all_losses = do_epoch(model, split, dataloader, tokenizer, optimizer, args, True)
         

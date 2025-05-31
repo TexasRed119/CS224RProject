@@ -30,17 +30,22 @@ def main(args):
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size)
 
     for epoch in range(args.num_epochs):
-        train_dataset = CurriculumDataset(
-            model=model,
-            split='train',
-            dataset_name=SFT_DATASET,
-            tokenizer=tokenizer,
-            optimizer=optimizer,
-            args=args,
-            do_epoch=sft_do_epoch,
-            cur_epoch=epoch,
-            num_epochs=args.num_epochs
-        )
+        if args.curr_type in ['curriculum', 'anti']:
+            anti = args.curr_type == 'anti'
+            train_dataset = CurriculumDataset(
+                model=model,
+                split='train',
+                dataset_name=SFT_DATASET,
+                tokenizer=tokenizer,
+                optimizer=optimizer,
+                args=args,
+                do_epoch=sft_do_epoch,
+                cur_epoch=epoch,
+                num_epochs=args.num_epochs,
+                anti=anti
+            )
+        else:
+            train_dataset = load_dataset(SFT_DATASET, split='train')
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
         train_loss, num_batches, _ = sft_do_epoch(model, 'train', train_dataloader, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}\n")
@@ -49,7 +54,7 @@ def main(args):
 
     torch.save(
         model.state_dict(),
-        f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-seed_{args.seed}.pt'
+        f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-seed_{args.seed}-curr_type_{args.curr_type}.pt'
     )
 
 if __name__ == '__main__':
@@ -58,5 +63,6 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-6)
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
+    parser.add_argument('--curr_type', type=str, default='none')  # options: 'none', 'curriculum', 'anti'
     args = parser.parse_args()
     main(args)
