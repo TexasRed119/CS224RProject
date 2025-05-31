@@ -7,6 +7,7 @@ import random
 import numpy as np
 from do_epoch import sft_do_epoch
 from curriculum_dataset import CurriculumDataset
+import time
 
 SFT_DATASET = "Asap7772/cog_behav_all_strategies"
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -19,6 +20,8 @@ def set_seed(seed):
         torch.cuda.manual_seed_all(seed)
 
 def main(args):
+    start_time = time.time()
+
     # Set random seed for reproducibility
     set_seed(args.seed)
     
@@ -62,6 +65,10 @@ def main(args):
         model.state_dict(),
         model_path
     )
+
+    end_time = time.time()
+    total_time = end_time - start_time
+    print(f"Wall time in minutes: {total_time / 60}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
