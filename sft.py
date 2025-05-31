@@ -47,6 +47,7 @@ def main(args):
                 prev_indices=prev_indices
             )
             prev_indices = np.copy(train_dataset.indices_to_train)
+            assert(len(np.unique(prev_indices)) == len(prev_indices), "No repeated indexes in curriculum epoch.")
         else:
             train_dataset = load_dataset(SFT_DATASET, split='train')
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)

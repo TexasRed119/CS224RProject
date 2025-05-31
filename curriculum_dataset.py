@@ -34,9 +34,10 @@ class CurriculumDataset(TorchDataset):
             new_indices = np.argpartition(unseen_losses, index_cutoff)[:index_cutoff]
         else:
             if index_cutoff <= len(unseen_losses):
-                new_indices = np.argpartition(unseen_losses, -index_cutoff)[-index_cutoff:]
+                selected_unseen_idx = np.argpartition(unseen_losses, -index_cutoff)[-index_cutoff:]
             else:
-                new_indices = range(len(unseen_losses))
+                selected_unseen_idx = np.arange(len(unseen_losses))
+            new_indices = unseen_data_idx[selected_unseen_idx]
 
         self.indices_to_train = np.append(prev_indices, new_indices)
         self.curriculum_dataset = dataset.select(self.indices_to_train)
