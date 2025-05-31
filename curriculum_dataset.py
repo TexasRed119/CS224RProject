@@ -1,4 +1,4 @@
-from torch.utils.data import Dataset as TorchDataset
+from torch.utils.data import Dataset as TorchDataset, Subset
 from datasets import load_dataset, Dataset
 import torch
 import numpy as np
@@ -17,18 +17,29 @@ class CurriculumDataset(TorchDataset):
             do_epoch,
             cur_epoch,
             num_epochs,
-            anti  # TODO: implement curriculum learning
+            anti,  # TODO: implement curriculum learning
+            prev_indices
         ):
 
         dataset = load_dataset(dataset_name, split=split)
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
-        _, _, all_losses = do_epoch(model, split, dataloader, tokenizer, optimizer, args, True)
+        unseen_data_idx = np.setdiff1d(range(len(dataset)), prev_indices)
+        unseen_dataset = dataset.select(unseen_data_idx)
+
+        unseen_dataloader = torch.utils.data.DataLoader(unseen_dataset, batch_size=args.batch_size, shuffle=False)
+        _, _, unseen_losses = do_epoch(model, split, unseen_dataloader, tokenizer, optimizer, args, True)
         
-        percentage_of_dataset_to_keep = (cur_epoch + 1) / num_epochs
-        index_cutoff = int(len(dataset) * percentage_of_dataset_to_keep)  # might have an off-by-one error but not that deep
-         # all indexes with loss smaller than index_cutoff go at the start of the array
-        chosen_indices = np.argpartition(all_losses, index_cutoff)[:index_cutoff]
-        self.curriculum_dataset = Dataset.from_dict(dataset[chosen_indices])
+        index_cutoff = int(len(dataset) * (1 / num_epochs))  # might have an off-by-one error but not that deep
+        if anti == False:
+            # all indexes with loss smaller than index_cutoff go at the start of the array
+            new_indices = np.argpartition(unseen_losses, index_cutoff)[:index_cutoff]
+        else:
+            if index_cutoff <= len(unseen_losses):
+                new_indices = np.argpartition(unseen_losses, index_cutoff)[-index_cutoff:]
+            else:
+                new_indices = range(len(unseen_losses))
+
+        self.indices_to_train = np.append(prev_indices, new_indices)
+        self.curriculum_dataset = dataset.select(self.indices_to_train)
 
     def __len__(self):
         return len(self.curriculum_dataset)

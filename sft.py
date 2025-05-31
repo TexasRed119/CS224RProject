@@ -29,6 +29,7 @@ def main(args):
     test_dataset = load_dataset(SFT_DATASET, split='test')
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size)
 
+    prev_indices = np.array([])
     for epoch in range(args.num_epochs):
         if args.curr_type in ['curriculum', 'anti']:
             anti = args.curr_type == 'anti'
@@ -42,8 +43,10 @@ def main(args):
                 do_epoch=sft_do_epoch,
                 cur_epoch=epoch,
                 num_epochs=args.num_epochs,
-                anti=anti
+                anti=anti,
+                prev_indices=prev_indices
             )
+            prev_indices = np.copy(train_dataset.indices_to_train)
         else:
             train_dataset = load_dataset(SFT_DATASET, split='train')
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
@@ -63,6 +66,6 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-6)
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
-    parser.add_argument('--curr_type', type=str, default='none')  # options: 'none', 'curriculum', 'anti'
+    parser.add_argument('--curr_type', type=str, default='curriculum')  # options: 'none', 'curriculum', 'anti'
     args = parser.parse_args()
     main(args)
