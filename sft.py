@@ -45,7 +45,7 @@ def main(args):
         train_loss, num_batches, _ = sft_do_epoch(model, 'train', train_dataloader, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}\n")
         val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args)
-        print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
+        print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}\n")
 
     torch.save(
         model.state_dict(),
