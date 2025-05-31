@@ -56,9 +56,11 @@ def main(args):
         val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args)
         print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}\n")
 
+    model_path = './models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-seed_{args.seed}-curr_type_{args.curr_type}.pt'
+    print(f'\n{model_path}\n')
     torch.save(
         model.state_dict(),
-        f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-seed_{args.seed}-curr_type_{args.curr_type}.pt'
+        model_path
     )
 
 if __name__ == '__main__':
