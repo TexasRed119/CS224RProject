@@ -31,13 +31,13 @@ class CurriculumDataset(TorchDataset):
         index_cutoff = int(len(dataset) * (1 / num_epochs))  # might have an off-by-one error but not that deep
         if anti == False:
             # all indexes with loss smaller than index_cutoff go at the start of the array
-            new_indices = np.argpartition(unseen_losses, index_cutoff)[:index_cutoff]
+            selected_unseen_idx = np.argpartition(unseen_losses, index_cutoff)[:index_cutoff]
         else:
             if index_cutoff <= len(unseen_losses):
                 selected_unseen_idx = np.argpartition(unseen_losses, -index_cutoff)[-index_cutoff:]
             else:
                 selected_unseen_idx = np.arange(len(unseen_losses))
-            new_indices = unseen_data_idx[selected_unseen_idx]
+        new_indices = unseen_data_idx[selected_unseen_idx]
 
         self.indices_to_train = np.append(prev_indices, new_indices)
         self.curriculum_dataset = dataset.select(self.indices_to_train)
