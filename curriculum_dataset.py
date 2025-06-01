@@ -18,7 +18,8 @@ class CurriculumDataset(TorchDataset):
             cur_epoch,
             num_epochs,
             anti,
-            prev_indices
+            prev_indices,
+            prev_losses=None
         ):
 
         dataset = load_dataset(dataset_name, split=split)
@@ -28,21 +29,23 @@ class CurriculumDataset(TorchDataset):
             return
         
         unseen_data_idx = np.setdiff1d(range(len(dataset)), prev_indices)
-        unseen_dataset = dataset.select(unseen_data_idx)
+        if prev_losses is None:
+            with torch.no_grad():
+                unseen_dataset = dataset.select(unseen_data_idx)
+                unseen_dataloader = torch.utils.data.DataLoader(unseen_dataset, batch_size=args.batch_size, shuffle=False)
+                _, _, self.unseen_losses = do_epoch(model, split, unseen_dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=True)
+        else:
+            self.unseen_losses = np.array(prev_losses)[unseen_data_idx]
 
-        unseen_dataloader = torch.utils.data.DataLoader(unseen_dataset, batch_size=args.batch_size, shuffle=False)
-        with torch.no_grad():
-            _, _, unseen_losses = do_epoch(model, split, unseen_dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=True)
-        
         index_cutoff = int(len(dataset) * (1 / num_epochs))  # might have an off-by-one error but not that deep
         if anti == False:
             # all indexes with loss smaller than index_cutoff go at the start of the array
-            selected_unseen_idx = np.argpartition(unseen_losses, index_cutoff)[:index_cutoff]
+            selected_unseen_idx = np.argpartition(self.unseen_losses, index_cutoff)[:index_cutoff]
         else:
-            if index_cutoff <= len(unseen_losses):
-                selected_unseen_idx = np.argpartition(unseen_losses, -index_cutoff)[-index_cutoff:]
+            if index_cutoff <= len(self.unseen_losses):
+                selected_unseen_idx = np.argpartition(self.unseen_losses, -index_cutoff)[-index_cutoff:]
             else:
-                selected_unseen_idx = np.arange(len(unseen_losses))
+                selected_unseen_idx = np.arange(len(self.unseen_losses))
         new_indices = unseen_data_idx[selected_unseen_idx]
 
         self.indices_to_train = np.append(prev_indices, new_indices)

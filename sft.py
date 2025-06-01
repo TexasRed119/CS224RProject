@@ -42,6 +42,7 @@ def main(args):
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size)
 
     prev_indices = np.array([])
+    prev_losses = None
     for epoch in range(args.num_epochs):
         if args.curr_type in ['curriculum', 'anti']:
             anti = args.curr_type == 'anti'
@@ -56,8 +57,11 @@ def main(args):
                 cur_epoch=epoch,
                 num_epochs=args.num_epochs,
                 anti=anti,
-                prev_indices=prev_indices
+                prev_indices=prev_indices,
+                prev_losses=prev_losses
             )
+            if args.static_curr and epoch == 0:  # if we don't want to recalculate losses every epoch
+                prev_losses = train_dataset.unseen_losses
             prev_indices = np.copy(train_dataset.indices_to_train)
             assert len(np.unique(prev_indices)) == len(prev_indices), "No repeated indexes in curriculum epoch."
         else:
@@ -69,7 +73,7 @@ def main(args):
             val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
         print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}\n")
 
-    model_path = f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-seed_{args.seed}-curr_type_{args.curr_type}-scheduler_{args.scheduler}.pt'
+    model_path = f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-seed_{args.seed}-curr_type_{args.curr_type}-scheduler_{args.scheduler}-static_{args.static_curr}.pt'
     print(f'\n{model_path}\n')
     torch.save(
         model.state_dict(),
@@ -88,5 +92,6 @@ if __name__ == '__main__':
     parser.add_argument('--scheduler', action='store_true')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     parser.add_argument('--curr_type', type=str, default='curriculum')  # options: 'none', 'curriculum', 'anti'
+    parser.add_argument('--static_curr', action='store_true', help='Changes type of curriculum learning')
     args = parser.parse_args()
     main(args)
