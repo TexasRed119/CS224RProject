@@ -44,7 +44,7 @@ def sft_do_epoch(model, split, dataloader, tokenizer, optimizer, args, curriculu
         loss = loss / len(batch['query'])
         loss_item += loss.item()
         
-        if split == 'train':
+        if split == 'train' and not curriculum_init:
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
