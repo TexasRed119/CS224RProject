@@ -26,7 +26,8 @@ class CurriculumDataset(TorchDataset):
         unseen_dataset = dataset.select(unseen_data_idx)
 
         unseen_dataloader = torch.utils.data.DataLoader(unseen_dataset, batch_size=args.batch_size, shuffle=False)
-        _, _, unseen_losses = do_epoch(model, split, unseen_dataloader, tokenizer, optimizer, args, True)
+        with torch.no_grad():
+            _, _, unseen_losses = do_epoch(model, split, unseen_dataloader, tokenizer, optimizer, args, True)
         
         index_cutoff = int(len(dataset) * (1 / num_epochs))  # might have an off-by-one error but not that deep
         if anti == False:
