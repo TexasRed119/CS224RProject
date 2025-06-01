@@ -100,7 +100,7 @@ CKPT_PATH   = "models/sft/epochs_2-batch_4-lr_1e-05-seed_42-curr_type_curriculum
 MODEL_NAME  = "Qwen/Qwen2.5-0.5B"
 DEVICE      = "cuda" if torch.cuda.is_available() else "cpu"
 
-MAX_NEW_TOKENS = 512
+MAX_NEW_TOKENS = 1024
 TEMPERATURE     = 0
 
 def set_seed(seed=42):
@@ -110,16 +110,13 @@ def set_seed(seed=42):
 
 def prompt_template(nums, tgt):
       return (
-        f"User: Using the numbers {nums}, create only one arithmetic equation that equals "
-        f"{tgt}. Use each number exactly once, and do not omit any. And only use + - * / and "
-        "parentheses operators.\n" 
-        "Your output must be in the form:\n"
-        "<answer>EXPRESSION</answer>, where EXPRESSION is your arithmetic equation,\n"
-        "which must be bracketed by <answer> and </answer>. \n"
-        "As an example, <answer>1 + 2 + 4</answer>."
-        "Assisstant: arithmetic equation: ")
-
-
+        "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. "
+        "The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.\n"
+        f"User: Using the numbers {nums}, create an equation that equals "
+        f"{tgt}. You can use basic arithmetic operations (+, -, *, /) and each number can only be used once. "
+        "Show your work in <think> </think> tags. And return the final answer in <answer> </answer> tags, \n"
+        "for example <answer> (1 + 2) / 3 </answer>.\n"
+        "Assistant: Let me solve this step by step.")
           
 
 def main():
