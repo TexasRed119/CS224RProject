@@ -22,12 +22,17 @@ class CurriculumDataset(TorchDataset):
         ):
 
         dataset = load_dataset(dataset_name, split=split)
+        if cur_epoch + 1 == num_epochs:  # avoid calculating remaining losses
+            self.indices_to_train = np.arange(len(dataset))
+            self.curriculum_dataset = dataset
+            return
+        
         unseen_data_idx = np.setdiff1d(range(len(dataset)), prev_indices)
         unseen_dataset = dataset.select(unseen_data_idx)
 
         unseen_dataloader = torch.utils.data.DataLoader(unseen_dataset, batch_size=args.batch_size, shuffle=False)
         with torch.no_grad():
-            _, _, unseen_losses = do_epoch(model, split, unseen_dataloader, tokenizer, optimizer, args, True)
+            _, _, unseen_losses = do_epoch(model, split, unseen_dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=True)
         
         index_cutoff = int(len(dataset) * (1 / num_epochs))  # might have an off-by-one error but not that deep
         if anti == False:

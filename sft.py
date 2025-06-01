@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, get_linear_schedule_with_warmup
 import argparse
 from datasets import load_dataset
 import torch
@@ -29,6 +29,15 @@ def main(args):
     model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B", sliding_window=None).to(DEVICE)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
 
+    if args.scheduler:
+        train_dataset = load_dataset(SFT_DATASET, split='train')
+        num_steps = 0
+        for i in range(args.num_epochs):
+            examples_in_epoch = ((i+1) / args.num_epochs) * len(train_dataset)
+            num_steps += int(examples_in_epoch / args.batch_size)
+        print(f"Num training steps: {num_steps}")
+        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=num_steps)
+
     test_dataset = load_dataset(SFT_DATASET, split='test')
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size)
 
@@ -54,13 +63,13 @@ def main(args):
         else:
             train_dataset = load_dataset(SFT_DATASET, split='train')
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-        train_loss, num_batches, _ = sft_do_epoch(model, 'train', train_dataloader, tokenizer, optimizer, args)
+        train_loss, num_batches, _ = sft_do_epoch(model, 'train', train_dataloader, tokenizer, optimizer, args, scheduler=scheduler)
         print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}\n")
         with torch.no_grad():
-            val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args)
+            val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
         print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}\n")
 
-    model_path = f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-seed_{args.seed}-curr_type_{args.curr_type}.pt'
+    model_path = f'./models/sft/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-seed_{args.seed}-curr_type_{args.curr_type}-scheduler_{args.scheduler}.pt'
     print(f'\n{model_path}\n')
     torch.save(
         model.state_dict(),
@@ -76,6 +85,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_epochs', type=int, default=4)
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-6)
+    parser.add_argument('--scheduler', action='store_true')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     parser.add_argument('--curr_type', type=str, default='curriculum')  # options: 'none', 'curriculum', 'anti'
     args = parser.parse_args()

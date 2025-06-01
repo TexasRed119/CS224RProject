@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-def sft_do_epoch(model, split, dataloader, tokenizer, optimizer, args, curriculum_init=False):
+def sft_do_epoch(model, split, dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=False):
     loss_item = 0
     all_losses = []
 
@@ -48,5 +48,7 @@ def sft_do_epoch(model, split, dataloader, tokenizer, optimizer, args, curriculu
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            if args.scheduler:
+                scheduler.step()
 
     return loss_item, len(dataloader), all_losses
