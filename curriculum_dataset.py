@@ -17,7 +17,7 @@ class CurriculumDataset(TorchDataset):
             do_epoch,
             cur_epoch,
             num_epochs,
-            anti,  # TODO: implement curriculum learning
+            anti,
             prev_indices
         ):
 
