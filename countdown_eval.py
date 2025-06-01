@@ -95,8 +95,8 @@ def compute_score(solution_str, ground_truth, method='strict', format_score=0.1,
         return format_score 
 
 EVAL_FILE   = "Countdown_eval.txt"
-OUT_FILE    = "countdown_predictions.jsonl"
-CKPT_PATH   = "models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt"
+OUT_FILE    = "countdown_predictions.json"
+CKPT_PATH   = "models/sft/epochs_2-batch_4-lr_1e-05-seed_42-curr_type_curriculum-scheduler_True-static_True.pt"
 MODEL_NAME  = "Qwen/Qwen2.5-0.5B"
 DEVICE      = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -126,7 +126,7 @@ def main():
     set_seed()
 
     tok   = AutoTokenizer.from_pretrained(MODEL_NAME, padding_side="left")
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, sliding_window=None)
     model.load_state_dict(torch.load(CKPT_PATH, map_location=DEVICE))
     model.to(DEVICE).eval()
 
@@ -166,7 +166,7 @@ def main():
             fout.write(json.dumps({
                 "num": nums,
                 "target": tgt,
-                "expression": expr
+                "response": expr
             }) + "\n")
 
     print(f"\nWrote {OUT_FILE}")
