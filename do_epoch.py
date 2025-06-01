@@ -37,7 +37,7 @@ def sft_do_epoch(model, split, dataloader, tokenizer, optimizer, args, curriculu
             pred_probs = torch.nn.functional.softmax(pred_logits, dim=1)
 
             losses = F.nll_loss(torch.log(pred_probs), completion_ids.reshape(-1).to(DEVICE), reduction='none')
-            loss = losses.sum()
+            loss += losses.sum()
             if curriculum_init:
                 all_losses.append(losses.mean().item())  # use .mean to normalize for longer completions
 
