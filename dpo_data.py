@@ -31,6 +31,10 @@ def set_seed(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
+# should we use this?
+def strip_newlines(input_string):
+    return input_string.replace('\n', ' ')
+
 # make prompts using prompt template
 # make 2 responses for each prompt, compute score and then label preferred or dispreferred
 # note: if tie, just delete one and have model generate another response that will be better or worse
@@ -59,7 +63,7 @@ def make_features(llm, dataset):
     # but I would just have to loop through anyways to score and label responses...so I'm doing it like this
     i = 0
     for example in dataset:
-        if i >= 20: 
+        if i >= 10: 
             break
         prompt = prompt_template(example["nums"], example["target"])
         chosen = None
@@ -75,11 +79,11 @@ def make_features(llm, dataset):
         score2 = compute_score(extract_solution(output2), example)
 
         if score1 > score2: 
-            chosen = output1
-            rejected = output2
+            chosen = strip_newlines(output1)
+            rejected = strip_newlines(output2)
         elif score2 > score1:
-            chosen = output2
-            rejected = output1
+            chosen = strip_newlines(output2)
+            rejected = strip_newlines(output1)
         else: # tie, do nothing and move on
             continue
         

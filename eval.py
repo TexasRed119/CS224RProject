@@ -61,7 +61,7 @@ def main():
     
     # load weights
     print("\nLoading trained weights")
-    checkpoint_path = '/home/ec2-user/CS224RProject/models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt'
+    checkpoint_path = 'dpo/epochs_2-batch_2-lr_0.0001-beta_0.1-seed_42.pt'
     
     try:
         state_dict = torch.load(checkpoint_path, map_location=device)

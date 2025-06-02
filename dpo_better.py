@@ -34,7 +34,6 @@ def format_hug(x):
 def load_data(cumulative=False):
     pass
 
-
 # function to calcualte the log_probs and then use the prompt mask to mask the prompt before calcualting loss
 # we calculate all 4 log probs in equation using this
 def compute_log_prob(model, inputs, attention_mask, prompt_mask):
@@ -134,6 +133,8 @@ def main(args):
     ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
     ref_model.eval()  # freeze this bad boy like frozone
 
+    
+
     # Load model with appropriate device mapping
     # COMMMENTED OUT FOR DEBUGGING
     state_dict = torch.load(SFT_PATH, map_location=device)
@@ -150,6 +151,9 @@ def main(args):
     # load my dataset I made
     with open(DPO_DATASET, "r", encoding="utf-8") as f:
         train_dataset = json.load(f)
+
+    # TODO: try this
+    # dataset_dict = load_dataset("json", data_files=DPO_DATASET)
 
     # using .map to get prompt + response inputs...fuck you mattheus I aint no bum
     #preprocessor = DPO_Preprocessor(tokenizer)
@@ -170,7 +174,14 @@ def main(args):
             optimizer.zero_grad()
         
         print("This is the loss: ")
-        print(loss.detach())
+        print(loss)
+
+    model_path = f'./dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}.pt'
+    print(f'\n{model_path}\n')
+    torch.save(
+        model.state_dict(),
+        model_path
+    )
 
     end_time = time.time()
     total_time = end_time - start_time
@@ -180,9 +191,9 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_epochs', type=int, default=2)
-    parser.add_argument('--batch_size', type=int, default=4)
-    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-4)
-    parser.add_argument('--beta', type=float, default=0.1)
+    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-6)
+    parser.add_argument('--beta', type=float, default=0.01)
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     args = parser.parse_args()
     main(args)
