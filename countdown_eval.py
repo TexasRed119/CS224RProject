@@ -51,10 +51,10 @@ def compute_score(solution_str, ground_truth, method='strict', format_score=0.1,
         score: the score for the correct answer
     """
     target = ground_truth['target']
-    numbers = ground_truth['numbers']
+    numbers = ground_truth['nums']  # I changed this to nums...ismail tells me compute_score wasn't used anywhere else
     
     equation = solution_str
-    do_print = random.randint(1, 64) == 1
+    do_print = random.randint(1, 64) == 1  # yo....gandhi aint it bro
     
     if do_print:
         print(f"--------------------------------")

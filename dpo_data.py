@@ -1,8 +1,10 @@
 import torch
 import argparse
+import random
+import numpy as np
 from transformers import AutoTokenizer, AutoModelForCausalLM, Qwen2ForCausalLM, Qwen2Config
 from datasets import load_dataset
-from vllm import LLM
+from vllm import LLM, SamplingParams
 import json
 # rule-based reward function provided by gandhi
 # GANDHI! HE'S BACK
@@ -33,16 +35,35 @@ def set_seed(seed):
 def make_features(llm, dataset):
     dpo_dataset = []
 
+    # sampling parameters for vLLM, TODO: change
+    sampling_params = SamplingParams(
+        temperature=1.0,
+        top_p=0.95,
+        max_tokens=100,  # should probably change this
+        stop=None,
+    )
+
     # I was gonna loop through prompts, and then pass the entire list of prompts to lmm.generate..
     # but I would just have to loop through anyways to score and label responses...so I'm doing it like this
+    i = 0
     for example in dataset:
+        print("\n")
+        print("\n")
+        print(i)
+        print("\n")
+        print("\n")
+        if i > 5: 
+            break
         prompt = prompt_template(example["nums"], example["target"])
         chosen = None
         rejected = None
 
         # while tie stil exists, break otherwise
         while True:
-            output1, output2 = llm.generate([prompt, prompt])
+            outputs = llm.generate([prompt, prompt])
+
+            output1 = outputs[0].outputs[0].text.strip()
+            output2 = outputs[1].outputs[0].text.strip()
 
             score1 = compute_score(output1, example)
             score2 = compute_score(output2, example)
@@ -55,16 +76,20 @@ def make_features(llm, dataset):
                 chosen = output2
                 rejected = output1
                 break
+            else: # tie, do nothing and repeat
+                continue
         
         dpo_dataset.append({
             "prompt": prompt,
             "chosen": chosen,
             "rejected": rejected
         })
+        i += 1
+
     
     return dpo_dataset
 
-def main():
+def main(args):
     
     set_seed(args.seed)
 
@@ -73,26 +98,29 @@ def main():
 
     # Load model with appropriate device mapping
     # COMMMENTED OUT FOR DEBUGGING
+    print("loading model")
     state_dict = torch.load(SFT_PATH, map_location=device)
     model.load_state_dict(state_dict)
 
-    base_model.save_pretrained(SFT_PATH)
+    model.save_pretrained("./sft_model")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    tokenizer.save_pretrained(SFT_PATH)
+    tokenizer.save_pretrained("./sft_model")
 
+    print("vLLM time...")
     # use with vLLM
-    llm = LLM(model="./my_hf_model")
+    llm = LLM(model="./sft_model")
 
-    llm = llm.to(device)
+    llm = llm
 
+    print("Loading countdown dataset...")
     dataset = load_dataset(COUNTDOWN_DATASET, split="train")
 
     # make all the features we need for the new dataset (prompts, preferred, dispreferred)
-    dpo_dataset = make_features(dataset)
+    dpo_dataset = make_features(llm, dataset)
 
     # save dataset to .json
     with open(DPO_PATH, "w", encoding="utf-8") as f:
-        json.dump(dataset, f, indent=2, ensure_ascii=False)
+        json.dump(dpo_dataset, f, indent=2, ensure_ascii=False)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
