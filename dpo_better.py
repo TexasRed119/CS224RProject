@@ -64,8 +64,9 @@ def full_tokenize(batch, tokenizer):
     prompts = []
     for i in range(len(batch['prompt'])):
         prompts.append(batch['prompt'][i])
-        inputs_preferred.append(batch['prompt'][i] + format_hug(batch['chosen'])[i])
-        inputs_dispreferred.append(batch['prompt'][i] + format_hug(batch['rejected'])[i])
+        # Add space between prompt and response
+        inputs_preferred.append(batch['prompt'][i] + " " + format_hug(batch['chosen'])[i])
+        inputs_dispreferred.append(batch['prompt'][i] + " " + format_hug(batch['rejected'])[i])
 
     # preferred
     inputs_preferred = tokenizer(
@@ -112,9 +113,14 @@ def main(args):
     ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
     ref_model.eval()  # freeze this bad boy like frozone
 
-    state_dict = torch.load('./models/sft/epochs_2-batch_2-lr_0.0001.pt')
+    # Load model with CPU mapping
+    state_dict = torch.load('./models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt', map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
     ref_model.load_state_dict(state_dict)
+
+    # Move models to device
+    model = model.to(device)
+    ref_model = ref_model.to(device)
 
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
