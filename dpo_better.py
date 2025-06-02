@@ -13,7 +13,8 @@ import json
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
-DPO_DATASET = "dpo_dataset.json"
+#DPO_DATASET = "dpo_dataset.json"
+DPO_DATASET = "dpo_dataset_small.json"
 SFT_PATH = "BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
@@ -39,6 +40,8 @@ def load_data(cumulative=False):
 def compute_log_prob(model, inputs, attention_mask, prompt_mask):
     outputs = model(input_ids=inputs.to(device), attention_mask=attention_mask.to(device))
     logits = outputs.logits
+    print("DPO logits stats: ", logits.mean().item(), logits.std().item())
+
     pred_probs = F.softmax(logits, dim=-1)
 
     # model is predicting next token, so we need to shift everything by one to compare to ground truth (which is the input in our case)
@@ -103,6 +106,7 @@ def full_tokenize(batch, tokenizer):
     inputs_l = inputs_dispreferred["input_ids"]
     mask_l = inputs_dispreferred["attention_mask"]
 
+    
     # making the masks, can't return a tensor because then they will be different lengths
     # need to use 2 different masks due to different sequence lengths
     prompt_tokens = tokenizer(
@@ -112,6 +116,10 @@ def full_tokenize(batch, tokenizer):
     )["input_ids"]
     # mask everything that is part of the prompt: 1s after prompt, 0s in prompt
     prompt_lens = [len(p) for p in prompt_tokens] 
+    
+    #prompt_tokenized = tokenizer(prompts, padding=True, return_tensors='pt')
+    #prompt_lens = (prompt_tokenized['attention_mask']).sum(dim=1)
+
     prompt_mask_w = torch.ones_like(inputs_preferred["input_ids"])
     prompt_mask_l = torch.ones_like(inputs_dispreferred["input_ids"])
     for i in range(len(prompt_lens)):
@@ -129,11 +137,9 @@ def main(args):
     # model and ref_model these will both be the model from sft, thank you MATTHEUS!
     # ref_model is the frozen policy
     # AYO! YOU FROM BROOKLYN??
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
-    ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, sliding_window=None)
+    ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, sliding_window=None)
     ref_model.eval()  # freeze this bad boy like frozone
-
-    
 
     # Load model with appropriate device mapping
     # COMMMENTED OUT FOR DEBUGGING
@@ -147,27 +153,10 @@ def main(args):
 
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    
-    # load my dataset I made
-    # with open(DPO_DATASET, "r", encoding="utf-8") as f:
-        # train_dataset = json.load(f)
 
-    # TODO: try this
-    # Load dataset from JSON
+    # Load dataset i made
     dataset_dict = load_dataset("json", data_files=DPO_DATASET)
     train_dataset = dataset_dict["train"]
-
-    # Wrap into dataloader with custom collate_fn
-    train_dataloader = torch.utils.data.DataLoader(
-        train_dataset,
-        batch_size=args.batch_size,
-        shuffle=True,
-        collate_fn=lambda x: {
-            'prompt': [i['prompt'] for i in x],
-            'chosen': [i['chosen'] for i in x],
-            'rejected': [i['rejected'] for i in x]
-        }
-    )
 
     # using .map to get prompt + response inputs...fuck you mattheus I aint no bum
     #preprocessor = DPO_Preprocessor(tokenizer)
@@ -188,7 +177,7 @@ def main(args):
             optimizer.zero_grad()
         
         print("This is the loss: ")
-        print(loss)
+        print(loss.item())
 
     model_path = f'./dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}.pt'
     print(f'\n{model_path}\n')
