@@ -13,8 +13,9 @@ from countdown_eval import prompt_template
 
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
+SFT_PATH = "BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
-DPO_PATH = "dpo_dataset.json"
+DPO_PATH = "dpo_dataset.json" 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
@@ -72,12 +73,12 @@ def main():
 
     # Load model with appropriate device mapping
     # COMMMENTED OUT FOR DEBUGGING
-    #state_dict = torch.load('./models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt', map_location=device)
-    #model.load_state_dict(state_dict)
+    state_dict = torch.load(SFT_PATH, map_location=device)
+    model.load_state_dict(state_dict)
 
-    #base_model.save_pretrained("./my_hf_model")
-    #tokenizer = AutoTokenizer.from_pretrained("base-model-name")
-    #tokenizer.save_pretrained("./my_hf_model")
+    base_model.save_pretrained(SFT_PATH)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    tokenizer.save_pretrained(SFT_PATH)
 
     # use with vLLM
     llm = LLM(model="./my_hf_model")

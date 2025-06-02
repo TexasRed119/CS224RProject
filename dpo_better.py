@@ -14,6 +14,7 @@ import json
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
 DPO_DATASET = "dpo_dataset.json"
+SFT_PATH = "BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
@@ -137,9 +138,9 @@ def main(args):
 
     # Load model with appropriate device mapping
     # COMMMENTED OUT FOR DEBUGGING
-    #state_dict = torch.load('./models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt', map_location=device)
-    #model.load_state_dict(state_dict)
-    #ref_model.load_state_dict(state_dict)
+    state_dict = torch.load(SFT_PATH, map_location=device)
+    model.load_state_dict(state_dict)
+    ref_model.load_state_dict(state_dict)
 
     # Move models to device
     model = model.to(device)
