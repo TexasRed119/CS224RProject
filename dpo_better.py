@@ -8,10 +8,12 @@ from tqdm import tqdm
 import time
 import random
 import numpy as np
+import json
 
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
+DPO_DATASET = "dpo_dataset.json"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
@@ -146,8 +148,9 @@ def main(args):
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     
-    # TODO: fix how we load dataset...load my dataset I made
-    train_dataset = load_dataset(DPO_DATASET, split="train_prefs")
+    # load my dataset I made
+    with open("generated_dataset.json", "r", encoding="utf-8") as f:
+        train_dataset = json.load(f)
 
     # using .map to get prompt + response inputs...fuck you mattheus I aint no bum
     #preprocessor = DPO_Preprocessor(tokenizer)

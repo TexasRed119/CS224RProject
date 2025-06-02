@@ -3,6 +3,7 @@ import argparse
 from transformers import AutoTokenizer, AutoModelForCausalLM, Qwen2ForCausalLM, Qwen2Config
 from datasets import load_dataset
 from vllm import LLM
+import json
 # rule-based reward function provided by gandhi
 # GANDHI! HE'S BACK
 # "I am not gandhi the grey...I am gandhi the white...and i come back to you now at the turn of the tide" 
@@ -13,6 +14,7 @@ from countdown_eval import prompt_template
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
+DPO_PATH = "dpo_dataset.json"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
@@ -28,29 +30,38 @@ def set_seed(seed):
 # make 2 responses for each prompt, compute score and then label preferred or dispreferred
 # note: if tie, just delete one and have model generate another response that will be better or worse
 def make_features(llm, dataset):
-    prompts = []
-    chosen = []
-    rejected = []
+    dpo_dataset = []
 
     # I was gonna loop through prompts, and then pass the entire list of prompts to lmm.generate..
     # but I would just have to loop through anyways to score and label responses...so I'm doing it like this
     for example in dataset:
         prompt = prompt_template(example["nums"], example["target"])
-        prompts.append(prompt)
+        chosen = None
+        rejected = None
 
-        
-        while no_tie:
+        # while tie stil exists, break otherwise
+        while True:
             output1, output2 = llm.generate([prompt, prompt])
 
             score1 = compute_score(output1, example)
             score2 = compute_score(output2, example)
 
             if score1 > score2: 
-                chosen.append(output1)
-                rejected.append(output2)
-            elif
+                chosen = output1
+                rejected = output2
+                break
+            elif score2 > score1:
+                chosen = output2
+                rejected = output1
+                break
+        
+        dpo_dataset.append({
+            "prompt": prompt,
+            "chosen": chosen,
+            "rejected": rejected
+        })
     
-    return prompts
+    return dpo_dataset
 
 def main():
     
@@ -64,9 +75,9 @@ def main():
     #state_dict = torch.load('./models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt', map_location=device)
     #model.load_state_dict(state_dict)
 
-    base_model.save_pretrained("./my_hf_model")
-    tokenizer = AutoTokenizer.from_pretrained("base-model-name")
-    tokenizer.save_pretrained("./my_hf_model")
+    #base_model.save_pretrained("./my_hf_model")
+    #tokenizer = AutoTokenizer.from_pretrained("base-model-name")
+    #tokenizer.save_pretrained("./my_hf_model")
 
     # use with vLLM
     llm = LLM(model="./my_hf_model")
@@ -76,9 +87,11 @@ def main():
     dataset = load_dataset(COUNTDOWN_DATASET, split="train")
 
     # make all the features we need for the new dataset (prompts, preferred, dispreferred)
-    prompts, chosen, rejected = make_prompts(dataset)
+    dpo_dataset = make_features(dataset)
 
     # save dataset to .json
+    with open(DPO_PATH, "w", encoding="utf-8") as f:
+        json.dump(dataset, f, indent=2, ensure_ascii=False)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
