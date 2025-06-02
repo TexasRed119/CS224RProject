@@ -6,6 +6,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, Qwen2ForCausalLM, 
 from datasets import load_dataset
 from vllm import LLM, SamplingParams
 import json
+import time
 # rule-based reward function provided by gandhi
 # GANDHI! HE'S BACK
 # "I am not gandhi the grey...I am gandhi the white...and i come back to you now at the turn of the tide" 
@@ -41,7 +42,7 @@ def make_features(llm, dataset):
     sampling_params1 = SamplingParams(
         temperature=1.0,
         top_p=0.99,
-        max_tokens=1024,  # should probably change this
+        max_tokens=1024,
         stop=None,
         n=1
     )
@@ -49,50 +50,38 @@ def make_features(llm, dataset):
     sampling_params2 = SamplingParams(
         temperature=0.01,
         top_p=0.01,
-        max_tokens=1024,  # should probably change this
+        max_tokens=1024,
         stop=None,
         n=1
     )
 
-    # I was gonna loop through prompts, and then pass the entire list of prompts to lmm.generate..
+    # I was gonna loop through prompts, and then pass the entire list of prompts to lmm.generate...
     # but I would just have to loop through anyways to score and label responses...so I'm doing it like this
     i = 0
     for example in dataset:
-        print("\n")
-        print("\n")
-        print(i)
-        print("\n")
-        print("\n")
-        if i > 5: 
+        if i >= 20: 
             break
         prompt = prompt_template(example["nums"], example["target"])
         chosen = None
         rejected = None
 
-        # while tie stil exists, break otherwise
-        while True:
-            output1 = llm.generate([prompt], sampling_params=sampling_params1)
-            output2 = llm.generate([prompt], sampling_params=sampling_params2)
+        output1 = llm.generate([prompt], sampling_params=sampling_params1)
+        output2 = llm.generate([prompt], sampling_params=sampling_params2)
 
-            output1 = output1[0].outputs[0].text.strip()
-            output2 = output2[0].outputs[0].text.strip()
+        output1 = output1[0].outputs[0].text.strip()
+        output2 = output2[0].outputs[0].text.strip()
 
-            score1 = compute_score(extract_solution(output1), example)
-            score2 = compute_score(extract_solution(output2), example)
+        score1 = compute_score(extract_solution(output1), example)
+        score2 = compute_score(extract_solution(output2), example)
 
-            print(score1)
-            print(score2)
-
-            if score1 > score2: 
-                chosen = output1
-                rejected = output2
-                break
-            elif score2 > score1:
-                chosen = output2
-                rejected = output1
-                break
-            else: # tie, do nothing and repeat
-                continue
+        if score1 > score2: 
+            chosen = output1
+            rejected = output2
+        elif score2 > score1:
+            chosen = output2
+            rejected = output1
+        else: # tie, do nothing and move on
+            continue
         
         dpo_dataset.append({
             "prompt": prompt,
@@ -105,6 +94,7 @@ def make_features(llm, dataset):
     return dpo_dataset
 
 def main(args):
+    start_time = time.time()
     
     set_seed(args.seed)
 
@@ -113,7 +103,7 @@ def main(args):
 
     # Load model with appropriate device mapping
     # COMMMENTED OUT FOR DEBUGGING
-    print("loading model")
+    #print("loading model")
     state_dict = torch.load(SFT_PATH, map_location=device)
     model.load_state_dict(state_dict)
 
@@ -121,13 +111,13 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     tokenizer.save_pretrained("./sft_model")
 
-    print("vLLM time...")
+    #print("vLLM time...")
     # use with vLLM
     llm = LLM(model="./sft_model")
 
     llm = llm
 
-    print("Loading countdown dataset...")
+    #print("Loading countdown dataset...")
     dataset = load_dataset(COUNTDOWN_DATASET, split="train")
 
     # make all the features we need for the new dataset (prompts, preferred, dispreferred)
@@ -136,6 +126,10 @@ def main(args):
     # save dataset to .json
     with open(DPO_PATH, "w", encoding="utf-8") as f:
         json.dump(dpo_dataset, f, indent=2, ensure_ascii=False)
+
+    end_time = time.time()
+    total_time = end_time - start_time
+    print(f"Wall time in minutes: {total_time / 60}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
