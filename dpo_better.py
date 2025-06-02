@@ -26,6 +26,7 @@ def set_seed(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
+# we needed this when we were making circles...now its squares
 def format_hug(x):
         return x[1]["content"]
 
@@ -33,9 +34,6 @@ def format_hug(x):
 def load_data(cumulative=False):
     pass
 
-
-def label_data():
-    pass
 
 # function to calcualte the log_probs and then use the prompt mask to mask the prompt before calcualting loss
 # we calculate all 4 log probs in equation using this
@@ -85,8 +83,8 @@ def full_tokenize(batch, tokenizer):
     for i in range(len(batch['prompt'])):
         prompts.append(batch['prompt'][i])
         # Add space between prompt and response
-        inputs_preferred.append(batch['prompt'][i] + " " + format_hug(batch['chosen'])[i])
-        inputs_dispreferred.append(batch['prompt'][i] + " " + format_hug(batch['rejected'])[i])
+        inputs_preferred.append(batch['prompt'][i] + " " + batch['chosen'][i])
+        inputs_dispreferred.append(batch['prompt'][i] + " " + batch['rejected'][i])
 
     # preferred
     inputs_preferred = tokenizer(
@@ -150,7 +148,7 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     
     # load my dataset I made
-    with open("generated_dataset.json", "r", encoding="utf-8") as f:
+    with open(DPO_DATASET, "r", encoding="utf-8") as f:
         train_dataset = json.load(f)
 
     # using .map to get prompt + response inputs...fuck you mattheus I aint no bum
@@ -170,6 +168,9 @@ def main(args):
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
+        
+        print("This is the loss: ")
+        print(loss.detach())
 
     end_time = time.time()
     total_time = end_time - start_time
