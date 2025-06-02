@@ -8,7 +8,8 @@ from tqdm import tqdm
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 DPO_DATASET = "HuggingFaceH4/ultrafeedback_binarized"
-device = 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(f"Using device: {device}")
 
 def format_hug(x):
         return x[1]["content"]
@@ -113,8 +114,8 @@ def main(args):
     ref_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
     ref_model.eval()  # freeze this bad boy like frozone
 
-    # Load model with CPU mapping
-    state_dict = torch.load('./models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt', map_location=torch.device('cpu'))
+    # Load model with appropriate device mapping
+    state_dict = torch.load('./models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt', map_location=device)
     model.load_state_dict(state_dict)
     ref_model.load_state_dict(state_dict)
 
