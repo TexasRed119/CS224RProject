@@ -31,7 +31,7 @@ def set_seed(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-# should we use this?
+# should we use this? I think not
 def strip_newlines(input_string):
     return input_string.replace('\n', ' ')
 
@@ -63,7 +63,7 @@ def make_features(llm, dataset):
     # but I would just have to loop through anyways to score and label responses...so I'm doing it like this
     i = 0
     for example in dataset:
-        if i >= 10: 
+        if i >= 1000: 
             break
         prompt = prompt_template(example["nums"], example["target"])
         chosen = None
@@ -79,11 +79,11 @@ def make_features(llm, dataset):
         score2 = compute_score(extract_solution(output2), example)
 
         if score1 > score2: 
-            chosen = strip_newlines(output1)
-            rejected = strip_newlines(output2)
+            chosen = output1
+            rejected = output2
         elif score2 > score1:
-            chosen = strip_newlines(output2)
-            rejected = strip_newlines(output1)
+            chosen = output2
+            rejected = output1
         else: # tie, do nothing and move on
             continue
         

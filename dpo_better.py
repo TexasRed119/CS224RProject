@@ -149,11 +149,25 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     
     # load my dataset I made
-    with open(DPO_DATASET, "r", encoding="utf-8") as f:
-        train_dataset = json.load(f)
+    # with open(DPO_DATASET, "r", encoding="utf-8") as f:
+        # train_dataset = json.load(f)
 
     # TODO: try this
-    # dataset_dict = load_dataset("json", data_files=DPO_DATASET)
+    # Load dataset from JSON
+    dataset_dict = load_dataset("json", data_files=DPO_DATASET)
+    train_dataset = dataset_dict["train"]
+
+    # Wrap into dataloader with custom collate_fn
+    train_dataloader = torch.utils.data.DataLoader(
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        collate_fn=lambda x: {
+            'prompt': [i['prompt'] for i in x],
+            'chosen': [i['chosen'] for i in x],
+            'rejected': [i['rejected'] for i in x]
+        }
+    )
 
     # using .map to get prompt + response inputs...fuck you mattheus I aint no bum
     #preprocessor = DPO_Preprocessor(tokenizer)
