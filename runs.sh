@@ -1,1 +1,1 @@
-python sft.py --curr_type none --num_epochs 2 --lr 1e-5 --scheduler > none_1e-5_scheduler_epochs-2.txt
+python sft.py --curr_type anti --num_epochs 2 --lr 1e-5 --scheduler --static_curr > anti_1e-5_scheduler_epochs-2_static.txt
