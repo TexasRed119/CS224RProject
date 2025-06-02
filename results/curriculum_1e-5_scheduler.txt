@@ -1,0 +1,29 @@
+Num training steps: 873
+Epoch: 0, Train loss: 358.31348092215404
+
+Epoch: 0, Val loss: 276.42545043945313
+
+Epoch: 1, Train loss: 206.9693919721856
+
+Epoch: 1, Val loss: 247.05010375976562
+
+Epoch: 2, Train loss: 161.98712982177733
+
+Epoch: 2, Val loss: 235.50822204589844
+
+Epoch: 3, Train loss: 139.79573429061705
+
+Epoch: 3, Val loss: 234.29402435302734
+
+Epoch: 4, Train loss: 127.71980793659503
+
+Epoch: 4, Val loss: 231.21343536376952
+
+Epoch: 5, Train loss: 119.58758191028274
+
+Epoch: 5, Val loss: 231.41943817138673
+
+
+./models/sft/epochs_6-batch_4-lr_1e-05-seed_42-curr_type_curriculum-scheduler_True.pt
+
+Wall time in minutes: 9.702754684289296

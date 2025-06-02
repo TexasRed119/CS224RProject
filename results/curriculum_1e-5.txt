@@ -1,0 +1,28 @@
+Epoch: 0, Train loss: 358.400643484933
+
+Epoch: 0, Val loss: 276.34763305664063
+
+Epoch: 1, Train loss: 207.51980498899897
+
+Epoch: 1, Val loss: 248.22350555419922
+
+Epoch: 2, Train loss: 164.12664727783203
+
+Epoch: 2, Val loss: 237.33204132080078
+
+Epoch: 3, Train loss: 145.2869402184544
+
+Epoch: 3, Val loss: 235.9234814453125
+
+Epoch: 4, Train loss: 135.4380192389855
+
+Epoch: 4, Val loss: 237.4362335205078
+
+Epoch: 5, Train loss: 130.0392641121125
+
+Epoch: 5, Val loss: 229.7837142944336
+
+
+./models/sft/epochs_6-batch_4-lr_1e-05-seed_42-curr_type_curriculum.pt
+
+Wall time in minutes: 9.692092017332714
