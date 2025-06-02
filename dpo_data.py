@@ -11,6 +11,7 @@ import json
 # "I am not gandhi the grey...I am gandhi the white...and i come back to you now at the turn of the tide" 
 from countdown_eval import compute_score
 from countdown_eval import prompt_template
+from countdown_eval import extract_solution
 
 
 
@@ -35,12 +36,22 @@ def set_seed(seed):
 def make_features(llm, dataset):
     dpo_dataset = []
 
-    # sampling parameters for vLLM, TODO: change
-    sampling_params = SamplingParams(
+    # sampling parameters for vLLM
+    # these sampling params should get it wrong
+    sampling_params1 = SamplingParams(
         temperature=1.0,
-        top_p=0.95,
-        max_tokens=100,  # should probably change this
+        top_p=0.99,
+        max_tokens=1024,  # should probably change this
         stop=None,
+        n=1
+    )
+    # these sampling params should get it right
+    sampling_params2 = SamplingParams(
+        temperature=0.01,
+        top_p=0.01,
+        max_tokens=1024,  # should probably change this
+        stop=None,
+        n=1
     )
 
     # I was gonna loop through prompts, and then pass the entire list of prompts to lmm.generate..
@@ -60,13 +71,17 @@ def make_features(llm, dataset):
 
         # while tie stil exists, break otherwise
         while True:
-            outputs = llm.generate([prompt, prompt])
+            output1 = llm.generate([prompt], sampling_params=sampling_params1)
+            output2 = llm.generate([prompt], sampling_params=sampling_params2)
 
-            output1 = outputs[0].outputs[0].text.strip()
-            output2 = outputs[1].outputs[0].text.strip()
+            output1 = output1[0].outputs[0].text.strip()
+            output2 = output2[0].outputs[0].text.strip()
 
-            score1 = compute_score(output1, example)
-            score2 = compute_score(output2, example)
+            score1 = compute_score(extract_solution(output1), example)
+            score2 = compute_score(extract_solution(output2), example)
+
+            print(score1)
+            print(score2)
 
             if score1 > score2: 
                 chosen = output1
