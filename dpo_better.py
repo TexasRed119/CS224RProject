@@ -5,11 +5,23 @@ import torch.optim as optim
 from transformers import AutoTokenizer, AutoModelForCausalLM, Qwen2ForCausalLM, Qwen2Config
 from datasets import load_dataset
 from tqdm import tqdm
+import time
+import random
+import numpy as np
+
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
-DPO_DATASET = "HuggingFaceH4/ultrafeedback_binarized"
+COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 def format_hug(x):
         return x[1]["content"]
@@ -18,10 +30,14 @@ def format_hug(x):
 def load_data(cumulative=False):
     pass
 
+
+def label_data():
+    pass
+
 # function to calcualte the log_probs and then use the prompt mask to mask the prompt before calcualting loss
 # we calculate all 4 log probs in equation using this
 def compute_log_prob(model, inputs, attention_mask, prompt_mask):
-    outputs = model(input_ids=inputs, attention_mask=attention_mask)
+    outputs = model(input_ids=inputs.to(device), attention_mask=attention_mask.to(device))
     logits = outputs.logits
     pred_probs = F.softmax(logits, dim=-1)
 
@@ -32,12 +48,12 @@ def compute_log_prob(model, inputs, attention_mask, prompt_mask):
     prompt_mask = prompt_mask[:, 1:]
 
     # log-probabilities of the target tokens
-    target_preds = torch.gather(pred_probs, 2, target_ids.unsqueeze(-1)).squeeze(-1)
+    target_preds = torch.gather(pred_probs.to(device), 2, target_ids.unsqueeze(-1).to(device)).squeeze(-1)
 
     log_probs = torch.log(target_preds)
 
     # we don't care about the prediction loss for the prompts, only the responses
-    log_probs = log_probs * prompt_mask 
+    log_probs = log_probs * prompt_mask.to(device)
 
     return log_probs.sum(dim=-1)  # need to sum over all of the tokens in the response
 
@@ -106,6 +122,9 @@ def full_tokenize(batch, tokenizer):
     return inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l
 
 def main(args):
+    start_time = time.time()
+
+    set_seed(args.seed)
 
     # model and ref_model these will both be the model from sft, thank you MATTHEUS!
     # ref_model is the frozen policy
@@ -115,9 +134,10 @@ def main(args):
     ref_model.eval()  # freeze this bad boy like frozone
 
     # Load model with appropriate device mapping
-    state_dict = torch.load('./models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt', map_location=device)
-    model.load_state_dict(state_dict)
-    ref_model.load_state_dict(state_dict)
+    # COMMMENTED OUT FOR DEBUGGING
+    #state_dict = torch.load('./models/sft/epochs_6-batch_4-lr_1e-06-seed_42.pt', map_location=device)
+    #model.load_state_dict(state_dict)
+    #ref_model.load_state_dict(state_dict)
 
     # Move models to device
     model = model.to(device)
@@ -126,6 +146,7 @@ def main(args):
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     
+    # TODO: fix how we load dataset...load my dataset I made
     train_dataset = load_dataset(DPO_DATASET, split="train_prefs")
 
     # using .map to get prompt + response inputs...fuck you mattheus I aint no bum
@@ -146,12 +167,17 @@ def main(args):
             optimizer.step()
             optimizer.zero_grad()
 
+    end_time = time.time()
+    total_time = end_time - start_time
+    print(f"Wall time in minutes: {total_time / 60}")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_epochs', type=int, default=2)
-    parser.add_argument('--batch_size', type=int, default=8)
+    parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-4)
     parser.add_argument('--beta', type=float, default=0.1)
+    parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     args = parser.parse_args()
     main(args)
