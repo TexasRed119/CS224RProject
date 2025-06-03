@@ -15,7 +15,8 @@ from sft import SFT_DATASET
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
-DPO_DATASET = "dpo_dataset.json"
+DPO_DATASET = "dpo_train.json"
+DPO_VAL = "dpo_val.json"
 SFT_PATH = "models/sft/BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
@@ -71,7 +72,8 @@ def main(args):
         print(f"Num training steps: {num_steps}")
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=num_steps)
 
-    test_dataset = load_dataset(SFT_DATASET, split='test')
+    test_dict = load_dataset("json", data_files=DPO_VAL)
+    test_dataset = test_dict["train"]  # ignore that this says train...its still test dataset
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size)
 
     prev_indices = np.array([], dtype=int)
