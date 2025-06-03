@@ -15,6 +15,8 @@ def full_tokenize(batch, tokenizer):
     inputs_preferred = tokenizer(
         inputs_preferred,
         padding=True,
+        truncation=True,
+        max_length=512,
         return_tensors='pt'
     )
     inputs_w = inputs_preferred["input_ids"]
