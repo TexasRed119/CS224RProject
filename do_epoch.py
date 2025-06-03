@@ -1,8 +1,8 @@
 import torch
 from tqdm import tqdm
 import torch.nn.functional as F
-from dpo_better import full_tokenize
-from dpo_better import dpo_loss
+from dpo_utils.full_tokenize import full_tokenize
+from dpo_utils.dpo_loss import dpo_loss
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -68,7 +68,7 @@ def dpo_do_epoch(model, ref_model, split, dataloader, tokenizer, optimizer, args
     for batch in tqdm(dataloader):
         inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l = full_tokenize(batch, tokenizer)
 
-        loss = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask_w=prompt_mask_w, prompt_mask_l=prompt_mask_l)
+        losses = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask_w=prompt_mask_w, prompt_mask_l=prompt_mask_l)
 
         loss = losses.mean()
         loss_item += loss.item()

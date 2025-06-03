@@ -1,8 +1,7 @@
 import torch
-import torch.nn.functional as F
 import argparse
 import torch.optim as optim
-from transformers import AutoTokenizer, AutoModelForCausalLM, Qwen2ForCausalLM, Qwen2Config, get_linear_schedule_with_warmup
+from transformers import AutoTokenizer, AutoModelForCausalLM, get_linear_schedule_with_warmup
 from datasets import load_dataset
 from tqdm import tqdm
 import time
@@ -10,6 +9,7 @@ import random
 import numpy as np
 import json
 from do_epoch import dpo_do_epoch
+from curriculum_dataset import CurriculumDataset
 # from the_streets import a_couple_of_gs
 from sft import SFT_DATASET
 
@@ -32,100 +32,6 @@ def set_seed(seed):
 # we needed this when we were making circles...now its squares
 def format_hug(x):
         return x[1]["content"]
-
-# function to calcualte the log_probs and then use the prompt mask to mask the prompt before calcualting loss
-# we calculate all 4 log probs in equation using this
-def compute_log_prob(model, inputs, attention_mask, prompt_mask):
-    outputs = model(input_ids=inputs.to(device), attention_mask=attention_mask.to(device))
-    logits = outputs.logits
-    print("DPO logits stats: ", logits.mean().item(), logits.std().item())
-
-    pred_probs = F.softmax(logits, dim=-1)
-
-    # model is predicting next token, so we need to shift everything by one to compare to ground truth (which is the input in our case)
-    # right now we have shape of (batch, sequence, vocab), so adjust over sequence dimension
-    pred_probs = pred_probs[:, :-1, :]  # don't need last token prediction
-    target_ids = inputs[:, 1:]  # our ground truth labels
-    prompt_mask = prompt_mask[:, 1:]
-
-    # log-probabilities of the target tokens
-    target_preds = torch.gather(pred_probs.to(device), 2, target_ids.unsqueeze(-1).to(device)).squeeze(-1)
-
-    log_probs = torch.log(target_preds)
-
-    # we don't care about the prediction loss for the prompts, only the responses
-    log_probs = log_probs * prompt_mask.to(device)
-
-    return log_probs.sum(dim=-1)  # need to sum over all of the tokens in the response
-
-# apparently common values for beta are 0.1, 0.5, possible range of 0.01 -> 10. High values will overfit, low values will underfit
-# 0.1 beta with 10 epochs might be similar to 1 epoch with 10 beta
-def dpo_loss(inputs_w, inputs_l, mask_w, mask_l, model, ref_model, beta, prompt_mask_w, prompt_mask_l):
-
-    logprob_model_w = compute_log_prob(model, inputs_w, mask_w, prompt_mask_w)
-    logprob_model_l = compute_log_prob(model, inputs_l, mask_l, prompt_mask_l)
-
-    # reference model is frozen, so don't calculate gradients
-    with torch.no_grad():
-        logprob_ref_w = compute_log_prob(ref_model, inputs_w, mask_w, prompt_mask_w)
-        logprob_ref_l = compute_log_prob(ref_model, inputs_l, mask_l, prompt_mask_l)
-
-    # changed the fomula a little, but mathematically the same. was easier to take 4 log_probs and then subtract, instead doing division and then log
-    logits = beta * ((logprob_model_w - logprob_ref_w) - (logprob_model_l -  logprob_ref_l))
-    loss = -F.logsigmoid(logits)
-    return loss
-
-def full_tokenize(batch, tokenizer):
-    inputs_preferred = []
-    inputs_dispreferred = []
-    # getting prompts so we can make prompt mask
-    prompts = []
-    for i in range(len(batch['prompt'])):
-        prompts.append(batch['prompt'][i])
-        # Add space between prompt and response
-        inputs_preferred.append(batch['prompt'][i] + " " + batch['chosen'][i])
-        inputs_dispreferred.append(batch['prompt'][i] + " " + batch['rejected'][i])
-
-    # preferred
-    inputs_preferred = tokenizer(
-        inputs_preferred,
-        padding=True,
-        return_tensors='pt'
-    )
-    inputs_w = inputs_preferred["input_ids"]
-    mask_w = inputs_preferred["attention_mask"]
-
-    # dispreffered
-    inputs_dispreferred = tokenizer(
-        inputs_dispreferred,
-        padding=True,
-        return_tensors='pt'
-    )
-    inputs_l = inputs_dispreferred["input_ids"]
-    mask_l = inputs_dispreferred["attention_mask"]
-
-    
-    # making the masks, can't return a tensor because then they will be different lengths
-    # need to use 2 different masks due to different sequence lengths
-    prompt_tokens = tokenizer(
-        prompts,
-        padding=False,
-        return_tensors=None
-    )["input_ids"]
-    # mask everything that is part of the prompt: 1s after prompt, 0s in prompt
-    prompt_lens = [len(p) for p in prompt_tokens] 
-    
-    #prompt_tokenized = tokenizer(prompts, padding=True, return_tensors='pt')
-    #prompt_lens = (prompt_tokenized['attention_mask']).sum(dim=1)
-
-    prompt_mask_w = torch.ones_like(inputs_preferred["input_ids"])
-    prompt_mask_l = torch.ones_like(inputs_dispreferred["input_ids"])
-    for i in range(len(prompt_lens)):
-        prompt_len = prompt_lens[i]
-        prompt_mask_w[i, :prompt_len] = 0
-        prompt_mask_l[i, :prompt_len] = 0
-
-    return inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l
 
 def main(args):
     start_time = time.time()
@@ -228,8 +134,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_epochs', type=int, default=2)
     parser.add_argument('--batch_size', type=int, default=2)
-    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-10)
-    parser.add_argument('--beta', type=float, default=1e-10)
+    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-5)
+    parser.add_argument('--beta', type=float, default=0.1)
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     parser.add_argument('--scheduler', action='store_true')
     parser.add_argument('--curr_type', type=str, default='curriculum')  # options: 'none', 'curriculum', 'anti'
