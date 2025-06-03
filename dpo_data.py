@@ -20,7 +20,7 @@ MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 SFT_PATH = "BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
 #DPO_PATH = "dpo_dataset.json" 
-DPO_PATH = "dpo_dataset_small.json" 
+DPO_PATH = "dpo_dataset_large.json" 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
@@ -64,7 +64,7 @@ def make_features(llm, dataset):
     # but I would just have to loop through anyways to score and label responses...so I'm doing it like this
     i = 0
     for example in dataset:
-        if i >= 10: 
+        if i >= 1000: 
             break
         prompt = prompt_template(example["nums"], example["target"])
         chosen = None
@@ -123,7 +123,7 @@ def main(args):
     llm = llm
 
     #print("Loading countdown dataset...")
-    dataset = load_dataset(COUNTDOWN_DATASET, split="train")
+    dataset = load_dataset(COUNTDOWN_DATASET, split="train").shuffle(seed=args.seed)
 
     # make all the features we need for the new dataset (prompts, preferred, dispreferred)
     dpo_dataset = make_features(llm, dataset)

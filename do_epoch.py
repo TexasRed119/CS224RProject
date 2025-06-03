@@ -2,6 +2,7 @@ import torch
 from tqdm import tqdm
 import torch.nn.functional as F
 from dpo_better import full_tokenize
+from dpo_better import dpo_loss
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -55,7 +56,7 @@ def sft_do_epoch(model, split, dataloader, tokenizer, optimizer, args, scheduler
     return loss_item, len(dataloader), all_losses
 
 
-def dpo_do_epoch(model, split, dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=False):
+def dpo_do_epoch(model, ref_model, split, dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=False):
     loss_item = 0
     all_losses = []
 

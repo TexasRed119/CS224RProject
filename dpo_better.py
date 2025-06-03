@@ -9,6 +9,7 @@ import time
 import random
 import numpy as np
 import json
+from do_epoch import dpo_do_epoch
 
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
@@ -154,6 +155,20 @@ def main(args):
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
+    '''
+    # copied from sft right now, need to edit
+    if args.scheduler:
+        train_dataset = load_dataset(SFT_DATASET, split='train')
+        num_steps = 0
+        for i in range(args.num_epochs):
+            examples_in_epoch = ((i+1) / args.num_epochs) * len(train_dataset)
+            if args.repeat_epochs is not None and str(i) in args.repeat_epochs.keys():
+                examples_in_epoch *= int(args.repeat_epochs[str(i)])
+            num_steps += int(examples_in_epoch / args.batch_size)
+        print(f"Num training steps: {num_steps}")
+        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=num_steps)
+    '''
+
     # Load dataset i made
     dataset_dict = load_dataset("json", data_files=DPO_DATASET)
     train_dataset = dataset_dict["train"]
@@ -199,5 +214,9 @@ if __name__ == '__main__':
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-10)
     parser.add_argument('--beta', type=float, default=1e-10)
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
+    parser.add_argument('--scheduler', action='store_true')
+    parser.add_argument('--curr_type', type=str, default='curriculum')  # options: 'none', 'curriculum', 'anti'
+    parser.add_argument('--static_curr', action='store_true', help='Changes type of curriculum learning')
+    parser.add_argument('--repeat_epochs', type=json.loads, help="Specify dict of epochs to repeat, and how many times to repeat.")
     args = parser.parse_args()
     main(args)
