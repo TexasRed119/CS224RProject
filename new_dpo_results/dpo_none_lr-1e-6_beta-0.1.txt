@@ -1,0 +1,14 @@
+Using device: cuda
+Epoch: 0, Train loss: 0.2670207682648761
+
+Epoch: 0, Val loss: 0.16797939463838432
+Epoch: 0, SFT Val loss: 256.68051803588867
+Saving best model: ./models/dpo/epochs_4-batch_2-lr_1e-06-beta_0.1-seed_42-scheduler_False.pt
+Epoch: 1, Train loss: 0.013853194463666446
+
+Epoch: 1, Val loss: 0.27413908054943265
+Epoch: 1, SFT Val loss: 312.15781860351564
+Epoch: 2, Train loss: 0.003387238837086373
+
+Epoch: 2, Val loss: 0.280797186688136
+Epoch: 2, SFT Val loss: 350.10618865966796
