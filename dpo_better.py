@@ -118,7 +118,8 @@ def main(args):
             print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
             if val_loss < best_val_loss:
-                model_path = f'./models/dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}.pt'
+                model_path = f'./models/dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}-scheduler_{args.scheduler}.pt'
+                print(f'Saving best model: {model_path}')
                 torch.save(
                     model.state_dict(),
                     model_path
