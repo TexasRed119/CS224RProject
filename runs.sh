@@ -1,1 +1,1 @@
-python dpo_better.py --curr_type none --lr 1e-5 --num_epochs 3 --beta 0.2 --batch_size 2 > dpo_results/none_1e-5_epochs-3_beta-0.2_batch-2.txt
+python dpo_better.py --curr_type none --lr 1e-6 --beta 0.5 --num_epochs 4 > new_dpo_results/dpo_none_lr-1e-6_beta-0.5.txt
