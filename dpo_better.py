@@ -8,7 +8,7 @@ import time
 import random
 import numpy as np
 import json
-from do_epoch import dpo_do_epoch
+from do_epoch import dpo_do_epoch, sft_do_epoch
 from curriculum_dataset import CurriculumDataset
 # from the_streets import a_couple_of_gs
 from sft import SFT_DATASET
@@ -113,12 +113,11 @@ def main(args):
             train_loss, num_batches, _ = dpo_do_epoch(model, ref_model, 'train', train_dataloader, tokenizer, optimizer, args, scheduler=scheduler)
             print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}\n")
             with torch.no_grad():
-                val_loss, num_batches, _ = dpo_do_epoch(model, ref_model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
-            print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}\n")
+                val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
+            print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
             if val_loss < best_val_loss:
                 model_path = f'./models/dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}.pt'
-                print(f'\n{model_path}\n')
                 torch.save(
                     model.state_dict(),
                     model_path
