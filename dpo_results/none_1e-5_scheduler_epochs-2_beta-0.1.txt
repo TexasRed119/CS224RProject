@@ -1,2 +1,2 @@
 Using device: cuda
-Num training steps: 750
+Num training steps: 1500

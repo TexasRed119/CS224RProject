@@ -1,1 +1,1 @@
-python dpo_better.py --curr_type none --scheduler --lr 1e-5 --num_epochs 2 > dpo_results/none_1e-5_scheduler_epochs-2_beta-0.1.txt
+python dpo_better.py --curr_type anti --scheduler --lr 1e-5 --num_epochs 2 > dpo_results/none_1e-5_scheduler_epochs-2_beta-0.1.txt
