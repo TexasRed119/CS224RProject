@@ -19,10 +19,15 @@ class CurriculumDataset(TorchDataset):
             num_epochs,
             anti,
             prev_indices,
-            prev_losses=None
+            prev_losses=None,
+            ref_model=None
         ):
 
-        dataset = load_dataset(dataset_name, split=split)
+        if ref_model is not None:
+            dataset_dict = load_dataset("json", data_files=dataset_name)
+            dataset = dataset_dict["train"]
+        else:
+            dataset = load_dataset(dataset_name, split=split)
         if cur_epoch + 1 == num_epochs:  # avoid calculating remaining losses
             self.indices_to_train = np.arange(len(dataset))
             self.curriculum_dataset = dataset
@@ -33,7 +38,10 @@ class CurriculumDataset(TorchDataset):
             with torch.no_grad():
                 unseen_dataset = dataset.select(unseen_data_idx)
                 unseen_dataloader = torch.utils.data.DataLoader(unseen_dataset, batch_size=args.batch_size, shuffle=False)
-                _, _, self.unseen_losses = do_epoch(model, split, unseen_dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=True)
+                if ref_model is not None: 
+                    _, _, self.unseen_losses = do_epoch(model, ref_model, split, unseen_dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=True)
+                else:
+                    _, _, self.unseen_losses = do_epoch(model, split, unseen_dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=True)
         else:
             self.unseen_losses = np.array(prev_losses)[unseen_data_idx]
 

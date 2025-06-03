@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import argparse
 import torch.optim as optim
-from transformers import AutoTokenizer, AutoModelForCausalLM, Qwen2ForCausalLM, Qwen2Config
+from transformers import AutoTokenizer, AutoModelForCausalLM, Qwen2ForCausalLM, Qwen2Config, get_linear_schedule_with_warmup
 from datasets import load_dataset
 from tqdm import tqdm
 import time
@@ -10,7 +10,8 @@ import random
 import numpy as np
 import json
 from do_epoch import dpo_do_epoch
-
+# from the_streets import a_couple_of_gs
+from sft import SFT_DATASET
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
@@ -31,10 +32,6 @@ def set_seed(seed):
 # we needed this when we were making circles...now its squares
 def format_hug(x):
         return x[1]["content"]
-
-# todo: figure this out later, make it so we can use vanilla or cumulative
-def load_data(cumulative=False):
-    pass
 
 # function to calcualte the log_probs and then use the prompt mask to mask the prompt before calcualting loss
 # we calculate all 4 log probs in equation using this
@@ -155,10 +152,11 @@ def main(args):
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
-    '''
-    # copied from sft right now, need to edit
+
     if args.scheduler:
-        train_dataset = load_dataset(SFT_DATASET, split='train')
+        # Load dataset i made
+        dataset_dict = load_dataset("json", data_files=DPO_DATASET)
+        train_dataset = dataset_dict["train"]
         num_steps = 0
         for i in range(args.num_epochs):
             examples_in_epoch = ((i+1) / args.num_epochs) * len(train_dataset)
@@ -167,18 +165,51 @@ def main(args):
             num_steps += int(examples_in_epoch / args.batch_size)
         print(f"Num training steps: {num_steps}")
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=num_steps)
+
+    test_dataset = load_dataset(SFT_DATASET, split='test')
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size)
+
+    prev_indices = np.array([])
+    prev_losses = None
+    for epoch in range(args.num_epochs):
+        if args.repeat_epochs is not None and str(epoch) in args.repeat_epochs.keys():
+            times_to_repeat = int(args.repeat_epochs[str(epoch)])
+        else:
+            times_to_repeat = 1
+        for i in range(times_to_repeat):
+            if i == 0:  # only create train_dataset if on first repeat
+                if args.curr_type in ['curriculum', 'anti']:
+                    anti = args.curr_type == 'anti'
+                    train_dataset = CurriculumDataset(
+                        model=model,
+                        split='train',
+                        dataset_name=DPO_DATASET,
+                        tokenizer=tokenizer,
+                        optimizer=optimizer,
+                        args=args,
+                        do_epoch=dpo_do_epoch,
+                        cur_epoch=epoch,
+                        num_epochs=args.num_epochs,
+                        anti=anti,
+                        prev_indices=prev_indices,
+                        prev_losses=prev_losses,
+                        is_json=True
+                    )
+                    if args.static_curr and epoch == 0:  # if we don't want to recalculate losses every epoch
+                        prev_losses = train_dataset.unseen_losses
+                    prev_indices = np.copy(train_dataset.indices_to_train)
+                    assert len(np.unique(prev_indices)) == len(prev_indices), "No repeated indexes in curriculum epoch."
+                else:
+                    dataset_dict = load_dataset("json", data_files=DPO_DATASET)
+                    train_dataset = dataset_dict["train"]
+            train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+            train_loss, num_batches, _ = dpo_do_epoch(model, ref_model, 'train', train_dataloader, tokenizer, optimizer, args, scheduler=scheduler)
+            print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}\n")
+            with torch.no_grad():
+                val_loss, num_batches, _ = dpo_do_epoch(model, ref_model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
+            print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}\n")
+
     '''
-
-    # Load dataset i made
-    dataset_dict = load_dataset("json", data_files=DPO_DATASET)
-    train_dataset = dataset_dict["train"]
-
-    # using .map to get prompt + response inputs...fuck you mattheus I aint no bum
-    #preprocessor = DPO_Preprocessor(tokenizer)
-    #train_dataset = train_dataset.map(preprocessor)
-
-    # fuck...maybe im the bum
-
     # training
     for epoch in range(args.num_epochs):
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
@@ -191,9 +222,11 @@ def main(args):
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
+    
         
         print("This is the loss: ")
         print(loss.item())
+    '''
 
     model_path = f'./dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}.pt'
     print(f'\n{model_path}\n')
