@@ -47,7 +47,7 @@ def full_tokenize(batch, tokenizer):
     prompt_mask_l = torch.ones_like(inputs_dispreferred["input_ids"])
     for i in range(len(prompt_lens)):
         prompt_len = prompt_lens[i]
-        prompt_mask_w[i, :prompt_len] = 0
-        prompt_mask_l[i, :prompt_len] = 0
+        prompt_mask_w[i, :prompt_len-1] = 0
+        prompt_mask_l[i, :prompt_len-1] = 0
 
     return inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l
