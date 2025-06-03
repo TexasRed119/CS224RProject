@@ -13,8 +13,8 @@ import json
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
-#DPO_DATASET = "dpo_dataset.json"
-DPO_DATASET = "dpo_dataset_small.json"
+DPO_DATASET = "dpo_dataset.json"
+#DPO_DATASET = "dpo_dataset_small.json"
 SFT_PATH = "BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
@@ -195,8 +195,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_epochs', type=int, default=2)
     parser.add_argument('--batch_size', type=int, default=2)
-    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-6)
-    parser.add_argument('--beta', type=float, default=0.01)
+    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-10)
+    parser.add_argument('--beta', type=float, default=1e-10)
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     args = parser.parse_args()
     main(args)
