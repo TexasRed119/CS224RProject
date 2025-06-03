@@ -114,7 +114,7 @@ def main(args):
             train_loss, num_batches, _ = dpo_do_epoch(model, ref_model, 'train', train_dataloader, tokenizer, optimizer, args, scheduler=scheduler)
             print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}\n")
             with torch.no_grad():
-                val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
+                val_loss, num_batches, _ = dpo_do_epoch(model, ref_model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
             print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
             if val_loss < best_val_loss:
