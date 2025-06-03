@@ -64,11 +64,14 @@ def main(args):
         dataset_dict = load_dataset("json", data_files=DPO_DATASET)
         train_dataset = dataset_dict["train"]
         num_steps = 0
-        for i in range(args.num_epochs):
-            examples_in_epoch = ((i+1) / args.num_epochs) * len(train_dataset)
-            if args.repeat_epochs is not None and str(i) in args.repeat_epochs.keys():
-                examples_in_epoch *= int(args.repeat_epochs[str(i)])
-            num_steps += int(examples_in_epoch / args.batch_size)
+        if args.curr_type == 'none':  # todo: check if curr_type none for scheduler in sft.
+            num_steps = int(args.num_epochs * len(train_dataset) / args.batch_size)
+        else:
+            for i in range(args.num_epochs):
+                examples_in_epoch = ((i+1) / args.num_epochs) * len(train_dataset)
+                if args.repeat_epochs is not None and str(i) in args.repeat_epochs.keys():
+                    examples_in_epoch *= int(args.repeat_epochs[str(i)])
+                num_steps += int(examples_in_epoch / args.batch_size)
         print(f"Num training steps: {num_steps}")
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=num_steps)
 
