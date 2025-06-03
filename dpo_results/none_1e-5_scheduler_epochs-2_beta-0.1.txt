@@ -1,10 +1,2 @@
 Using device: cuda
 Num training steps: 750
-Epoch: 0, Val loss: 208.89035041809083
-
-
-./models/dpo/epochs_2-batch_2-lr_1e-05-beta_0.1-seed_42.pt
-
-Epoch: 1, Val loss: 208.89035041809083
-
-Wall time in minutes: 0.3714687943458557

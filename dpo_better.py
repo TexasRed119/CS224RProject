@@ -15,7 +15,7 @@ from sft import SFT_DATASET
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
-DPO_DATASET = "dpo_dataset.json"
+DPO_DATASET = "dpo_dataset_merged.json"
 #DPO_DATASET = "dpo_dataset_small.json"
 SFT_PATH = "models/sft/BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
