@@ -1,0 +1,15 @@
+Using device: cuda
+Num training steps: 3200
+Epoch: 0, Train loss: 0.2496844753503729
+
+Epoch: 0, Val loss: 0.1748853787464092
+Epoch: 0, SFT Val loss: 254.16810745239258
+Saving best model: ./models/dpo/epochs_4-batch_2-lr_1e-06-beta_0.1-seed_42-scheduler_True.pt
+Epoch: 1, Train loss: 0.01264012322385133
+
+Epoch: 1, Val loss: 0.2384918923262569
+Epoch: 1, SFT Val loss: 279.74743057250976
+Epoch: 2, Train loss: 0.0018513547430215062
+
+Epoch: 2, Val loss: 0.20399442620674804
+Epoch: 2, SFT Val loss: 311.85030548095705
