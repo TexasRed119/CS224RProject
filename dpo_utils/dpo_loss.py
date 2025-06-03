@@ -16,6 +16,7 @@ def compute_log_prob(model, inputs, attention_mask, prompt_mask):
     pred_probs = pred_probs[:, :-1, :]  # don't need last token prediction
     target_ids = inputs[:, 1:]  # our ground truth labels
     prompt_mask = prompt_mask[:, 1:]
+    attention_mask = attention_mask[:, 1:]
 
     # log-probabilities of the target tokens
     target_preds = torch.gather(pred_probs.to(DEVICE), 2, target_ids.unsqueeze(-1).to(DEVICE)).squeeze(-1)
@@ -23,7 +24,7 @@ def compute_log_prob(model, inputs, attention_mask, prompt_mask):
     log_probs = torch.log(target_preds)
 
     # we don't care about the prediction loss for the prompts, only the responses
-    log_probs = log_probs * prompt_mask.to(DEVICE)
+    log_probs = log_probs * prompt_mask.to(DEVICE) * attention_mask.to(DEVICE)
 
     return log_probs.sum(dim=-1)  # need to sum over all of the tokens in the response
 
