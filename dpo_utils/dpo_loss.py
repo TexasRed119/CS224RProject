@@ -44,3 +44,46 @@ def dpo_loss(inputs_w, inputs_l, mask_w, mask_l, model, ref_model, beta, prompt_
     logits = beta * ((logprob_model_w - logprob_ref_w) - (logprob_model_l -  logprob_ref_l))
     losses = -F.logsigmoid(logits)
     return losses
+
+# def wolff_log_prob(batch, model, tokenizer, completion_type):
+#     query_and_completion = []
+#     for i in range(len(batch['prompt'])):
+#         query_and_completion.append(batch['prompt'][i] + ' ' + batch[completion_type][i])
+#     query_and_completion = tokenizer(query_and_completion,
+#         padding=True,
+#         return_tensors='pt'
+#     )
+
+#     output = model(
+#         query_and_completion['input_ids'].to(DEVICE),
+#         attention_mask=query_and_completion['attention_mask'].to(DEVICE)
+#     )
+
+#     batch_probs = []
+#     for i in range(len(batch['prompt'])):
+#         query_ids = tokenizer.encode(batch['prompt'][i])
+#         completion_ids = tokenizer.encode(batch[completion_type][i], return_tensors='pt')
+#         pred_start = len(query_ids)-1
+#         num_preds = len(completion_ids[0])
+#         pred_logits = output['logits'][i][pred_start:pred_start+num_preds]
+#         pred_probs = torch.nn.functional.softmax(pred_logits, dim=1)
+#         pred_completion_probs = torch.gather(pred_probs, 1, completion_ids.reshape((-1, 1)).to(DEVICE))
+#         log_probs = torch.log(pred_completion_probs)
+#         batch_probs.append(log_probs.sum())
+
+#     return torch.Tensor(batch_probs)
+
+# def wolff_dpo_loss(batch, model, ref_model, beta, tokenizer):
+
+#     logprob_model_w = wolff_log_prob(batch, model, tokenizer, 'chosen')
+#     logprob_model_l = wolff_log_prob(batch, model, tokenizer, 'rejected')
+
+#     # reference model is frozen, so don't calculate gradients
+#     with torch.no_grad():
+#         logprob_ref_w = wolff_log_prob(batch, ref_model, tokenizer, 'chosen')
+#         logprob_ref_l = wolff_log_prob(batch, ref_model, tokenizer, 'rejected')
+
+#     # changed the fomula a little, but mathematically the same. was easier to take 4 log_probs and then subtract, instead doing division and then log
+#     logits = beta * ((logprob_model_w - logprob_ref_w) - (logprob_model_l -  logprob_ref_l))
+#     losses = -F.logsigmoid(logits)
+#     return losses

@@ -1,0 +1,4 @@
+Using device: cuda
+Epoch: 0, Train loss: 23.694163257590912
+
+Epoch: 0, Val loss: 33.534276629396224

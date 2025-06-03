@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["--curr_type", "anti", "--num_epochs", "6", "--lr", "1e-5", "--scheduler", "--static_curr"]
+            // "args": ["--curr_type", "none", "--num_epochs", "3", "--lr", "1e-5", "--scheduler", "--static_curr", "--beta", "1e-6"]
         }
     ]
 }

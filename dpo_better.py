@@ -15,7 +15,7 @@ from sft import SFT_DATASET
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
-DPO_DATASET = "dpo_train.json"
+DPO_DATASET = "dpo_train.json"  # todo: change back
 DPO_VAL = "dpo_val.json"
 SFT_PATH = "models/sft/BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -55,7 +55,7 @@ def main(args):
     model = model.to(device)
     ref_model = ref_model.to(device)
 
-    optimizer = optim.AdamW(model.parameters(), lr=args.lr)
+    optimizer = optim.RMSprop(model.parameters(), lr=args.lr)  # todo: keep?
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
     scheduler = None
@@ -140,13 +140,13 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_epochs', type=int, default=2)
+    parser.add_argument('--num_epochs', type=int, default=4)
     parser.add_argument('--batch_size', type=int, default=2)
-    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-5)
+    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-6)
     parser.add_argument('--beta', type=float, default=0.1)
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     parser.add_argument('--scheduler', action='store_true')
-    parser.add_argument('--curr_type', type=str, default='curriculum')  # options: 'none', 'curriculum', 'anti'
+    parser.add_argument('--curr_type', type=str, default='none')  # options: 'none', 'curriculum', 'anti'
     parser.add_argument('--static_curr', action='store_true', help='Changes type of curriculum learning')
     parser.add_argument('--repeat_epochs', type=json.loads, help="Specify dict of epochs to repeat, and how many times to repeat.")
     args = parser.parse_args()

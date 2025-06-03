@@ -1,0 +1,18 @@
+trained over dpo_val.json (NOT TRAIN. I wanted to be quick!)
+   
+    parser.add_argument('--num_epochs', type=int, default=2)
+    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-6)
+    parser.add_argument('--beta', type=float, default=0.1)
+    parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
+    parser.add_argument('--scheduler', action='store_true')
+    parser.add_argument('--curr_type', type=str, default='none')  # options: 'none', 'curriculum', 'anti'
+    parser.add_argument('--static_curr', action='store_true', help='Changes type of curriculum learning')
+    parser.add_argument('--repeat_epochs', type=json.loads, help="Specify dict of epochs to repeat, and how many times to repeat.")
+
+Using device: cuda
+Epoch: 0, Train loss: 0.3023942057092341
+
+Epoch: 0, Val loss: 0.008906321171729924
+Epoch: 0, SFT Val loss: 251.34708206176757
+Saving best model: ./models/dpo/epochs_2-batch_2-lr_1e-06-beta_0.1-seed_42-scheduler_False.pt

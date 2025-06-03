@@ -1,0 +1,5 @@
+Using device: cuda
+Num training steps: 999
+Epoch: 0, Train loss: nan
+
+Epoch: 0, Val loss: nan

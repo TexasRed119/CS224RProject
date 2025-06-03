@@ -96,7 +96,7 @@ def compute_score(solution_str, ground_truth, method='strict', format_score=0.1,
 
 EVAL_FILE   = "Countdown_eval.txt"
 OUT_FILE    = "countdown_predictions_dpo.json"
-CKPT_PATH   = "/home/ubuntu/CS224RProject/dpo/epochs_2-batch_2-lr_1e-10-beta_1e-10-seed_42.pt"
+CKPT_PATH   = "models/dpo/epochs_4-batch_2-lr_1e-06-beta_0.1-seed_42-scheduler_False.pt"
 MODEL_NAME  = "Qwen/Qwen2.5-0.5B"
 DEVICE      = "cuda" if torch.cuda.is_available() else "cpu"
 

@@ -12,7 +12,7 @@ import json
 
 SFT_DATASET = "Asap7772/cog_behav_all_strategies"
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-DPO_PATH = "models/dpo/epochs_3-batch_6-lr_1e-05-beta_0.1-seed_42.pt"
+DPO_PATH = "models/dpo/epochs_3-batch_6-lr_1e-05-beta_0.01-seed_42.pt"
 
 
 def set_seed(seed):

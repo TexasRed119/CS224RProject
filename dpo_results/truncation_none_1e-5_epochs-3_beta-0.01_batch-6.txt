@@ -1,0 +1,11 @@
+Using device: cuda
+Epoch: 0, Train loss: 0.5386462140434216
+
+Epoch: 0, Val loss: 0.7030426521243444
+Epoch: 1, Train loss: 0.3342189511514447
+
+Epoch: 1, Val loss: 0.5541839476174383
+Epoch: 2, Train loss: 0.15615491266275167
+
+Epoch: 2, Val loss: 0.6199809379542052
+Wall time in minutes: 18.255547551314034

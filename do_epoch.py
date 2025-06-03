@@ -67,8 +67,8 @@ def dpo_do_epoch(model, ref_model, split, dataloader, tokenizer, optimizer, args
 
     for batch in tqdm(dataloader):
         inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l = full_tokenize(batch, tokenizer)
-
         losses = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask_w=prompt_mask_w, prompt_mask_l=prompt_mask_l)
+        # test = wolff_dpo_loss(batch, model, ref_model, args.beta, tokenizer)
 
         loss = losses.mean()
         loss_item += loss.item()
