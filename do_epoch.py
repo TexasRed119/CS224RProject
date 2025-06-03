@@ -76,16 +76,18 @@ def dpo_do_epoch(model, ref_model, split, dataloader, tokenizer, optimizer, args
         if curriculum_init:
             all_losses.extend(losses.tolist())
 
-        if split == 'train' and not curriculum_init and i % 3 == 0:
-            loss /= (3 * args.batch_size)
+        if i % 3 == 0:
             loss_item += loss.item()
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            if args.scheduler:
-                scheduler.step()
-            
+            if split == 'train' and not curriculum_init:
+                loss /= (3 * args.batch_size)
+
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                if args.scheduler:
+                    scheduler.step()
+                    
             loss = 0
         
         i += 1
