@@ -171,6 +171,7 @@ def main(args):
 
     prev_indices = np.array([])
     prev_losses = None
+    best_val_loss = float('inf')
     for epoch in range(args.num_epochs):
         if args.repeat_epochs is not None and str(epoch) in args.repeat_epochs.keys():
             times_to_repeat = int(args.repeat_epochs[str(epoch)])
@@ -209,31 +210,14 @@ def main(args):
                 val_loss, num_batches, _ = dpo_do_epoch(model, ref_model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
             print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}\n")
 
-    '''
-    # training
-    for epoch in range(args.num_epochs):
-        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-        for batch in tqdm(train_dataloader):
-
-            inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l = full_tokenize(batch, tokenizer)
-
-            loss = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask_w=prompt_mask_w, prompt_mask_l=prompt_mask_l)
-            loss = loss.mean()
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
-    
-        
-        print("This is the loss: ")
-        print(loss.item())
-    '''
-
-    model_path = f'./dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}.pt'
-    print(f'\n{model_path}\n')
-    torch.save(
-        model.state_dict(),
-        model_path
-    )
+            if val_loss < best_val_loss:
+                model_path = f'./dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}.pt'
+                print(f'\n{model_path}\n')
+                torch.save(
+                    model.state_dict(),
+                    model_path
+                )
+                best_val_loss = val_loss
 
     end_time = time.time()
     total_time = end_time - start_time
