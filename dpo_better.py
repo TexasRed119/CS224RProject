@@ -15,7 +15,7 @@ from sft import SFT_DATASET
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
-DPO_DATASET = "dpo_dataset_merged.json"
+DPO_DATASET = "dpo_dataset.json"
 SFT_PATH = "models/sft/BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
@@ -57,7 +57,7 @@ def main(args):
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
-
+    scheduler = None
     if args.scheduler:
         # Load dataset i made
         dataset_dict = load_dataset("json", data_files=DPO_DATASET)
