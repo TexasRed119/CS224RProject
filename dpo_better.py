@@ -117,6 +117,10 @@ def main(args):
                 val_loss, num_batches, _ = dpo_do_epoch(model, ref_model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
             print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
+            with torch.no_grad():
+                sft_val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
+            print(f"Epoch: {epoch}, SFT Val loss: {sft_val_loss / num_batches}")
+            
             if val_loss < best_val_loss:
                 model_path = f'./models/dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}-scheduler_{args.scheduler}.pt'
                 print(f'Saving best model: {model_path}')
