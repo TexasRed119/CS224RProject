@@ -85,6 +85,8 @@ def dpo_do_epoch(model, ref_model, split, dataloader, tokenizer, optimizer, args
             optimizer.step()
             if args.scheduler:
                 scheduler.step()
+            
+            loss = 0
         
         i += 1
 
