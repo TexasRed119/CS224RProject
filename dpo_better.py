@@ -76,6 +76,9 @@ def main(args):
     test_dataset = test_dict["train"]  # ignore that this says train...its still test dataset
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size)
 
+    sft_test_dataset = load_dataset(SFT_DATASET, split='test')
+    sft_test_dataloader = torch.utils.data.DataLoader(sft_test_dataset, batch_size=args.batch_size)
+
     prev_indices = np.array([], dtype=int)
     prev_losses = None
     best_val_loss = float('inf')
@@ -118,7 +121,7 @@ def main(args):
             print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
             with torch.no_grad():
-                sft_val_loss, num_batches, _ = sft_do_epoch(model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
+                sft_val_loss, num_batches, _ = sft_do_epoch(model, 'test', sft_test_dataloader, tokenizer, optimizer, args, scheduler=None)
             print(f"Epoch: {epoch}, SFT Val loss: {sft_val_loss / num_batches}")
             
             if val_loss < best_val_loss:
