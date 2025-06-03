@@ -65,29 +65,23 @@ def dpo_do_epoch(model, ref_model, split, dataloader, tokenizer, optimizer, args
     elif split == 'test' or curriculum_init:
         model.eval()
 
-    i = 1
-    accumulation_itr = 4
     for batch in tqdm(dataloader):
         inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l = full_tokenize(batch, tokenizer)
 
         losses = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask_w=prompt_mask_w, prompt_mask_l=prompt_mask_l)
+
         loss = losses.mean()
-        loss /= accumulation_itr
         loss_item += loss.item()
 
         if curriculum_init:
             all_losses.extend(losses.tolist())
-        
-        if split == 'train' and not curriculum_init:
-            loss.backward()
 
-            if i % accumulation_itr == 0 or i == len(dataloader):
-                optimizer.step()
-                optimizer.zero_grad()
-                if args.scheduler:
-                    scheduler.step()
-        
-        i += 1
+        if split == 'train' and not curriculum_init:
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            if args.scheduler:
+                scheduler.step()
 
     return loss_item, len(dataloader), all_losses
 
