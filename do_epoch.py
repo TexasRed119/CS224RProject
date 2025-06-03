@@ -74,7 +74,7 @@ def dpo_do_epoch(model, ref_model, split, dataloader, tokenizer, optimizer, args
         loss_item += loss.item()
 
         if curriculum_init:
-            all_losses.append(loss.item())
+            all_losses.extend(losses.tolist())
 
         if split == 'train' and not curriculum_init:
             optimizer.zero_grad()

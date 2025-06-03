@@ -8,7 +8,6 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 def compute_log_prob(model, inputs, attention_mask, prompt_mask):
     outputs = model(input_ids=inputs.to(DEVICE), attention_mask=attention_mask.to(DEVICE))
     logits = outputs.logits
-    print("DPO logits stats: ", logits.mean().item(), logits.std().item())
 
     pred_probs = F.softmax(logits, dim=-1)
 

@@ -17,7 +17,7 @@ MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
 DPO_DATASET = "dpo_dataset.json"
 #DPO_DATASET = "dpo_dataset_small.json"
-SFT_PATH = "BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
+SFT_PATH = "models/sft/BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
@@ -100,7 +100,7 @@ def main(args):
                         anti=anti,
                         prev_indices=prev_indices,
                         prev_losses=prev_losses,
-                        is_json=True
+                        ref_model=ref_model
                     )
                     if args.static_curr and epoch == 0:  # if we don't want to recalculate losses every epoch
                         prev_losses = train_dataset.unseen_losses
@@ -117,7 +117,7 @@ def main(args):
             print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}\n")
 
             if val_loss < best_val_loss:
-                model_path = f'./dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}.pt'
+                model_path = f'./models/dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}.pt'
                 print(f'\n{model_path}\n')
                 torch.save(
                     model.state_dict(),
