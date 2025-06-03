@@ -47,6 +47,7 @@ def main(args):
     # Load model with appropriate device mapping
     # COMMMENTED OUT FOR DEBUGGING
     state_dict = torch.load(SFT_PATH, map_location=device)
+    model.load_state_dict(state_dict)
     ref_model.load_state_dict(state_dict)
 
     # Move models to device
