@@ -1,6 +1,7 @@
 import torch
 from tqdm import tqdm
 import torch.nn.functional as F
+from dpo_better import full_tokenize
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -52,3 +53,34 @@ def sft_do_epoch(model, split, dataloader, tokenizer, optimizer, args, scheduler
                 scheduler.step()
 
     return loss_item, len(dataloader), all_losses
+
+
+def dpo_do_epoch(model, split, dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=False):
+    loss_item = 0
+    all_losses = []
+
+    if split == 'train':
+        model.train()
+    elif split == 'test' or curriculum_init:
+        model.eval()
+
+    for batch in tqdm(dataloader):
+        inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l = full_tokenize(batch, tokenizer)
+
+        loss = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask_w=prompt_mask_w, prompt_mask_l=prompt_mask_l)
+
+        loss = losses.mean()
+        loss_item += loss.item()
+
+        if curriculum_init:
+            all_losses.append(loss.item())
+
+        if split == 'train' and not curriculum_init:
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            if args.scheduler:
+                scheduler.step()
+
+    return loss_item, len(dataloader), all_losses
+

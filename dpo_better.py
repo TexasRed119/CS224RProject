@@ -74,7 +74,7 @@ def dpo_loss(inputs_w, inputs_l, mask_w, mask_l, model, ref_model, beta, prompt_
 
     # changed the fomula a little, but mathematically the same. was easier to take 4 log_probs and then subtract, instead doing division and then log
     logits = beta * ((logprob_model_w - logprob_ref_w) - (logprob_model_l -  logprob_ref_l))
-    loss = -F.logsigmoid(logits).mean()
+    loss = -F.logsigmoid(logits)
     return loss
 
 def full_tokenize(batch, tokenizer):
@@ -172,6 +172,7 @@ def main(args):
             inputs_w, inputs_l, mask_w, mask_l, prompt_mask_w, prompt_mask_l = full_tokenize(batch, tokenizer)
 
             loss = dpo_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model, ref_model=ref_model, beta=args.beta, prompt_mask_w=prompt_mask_w, prompt_mask_l=prompt_mask_l)
+            loss = loss.mean()
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
