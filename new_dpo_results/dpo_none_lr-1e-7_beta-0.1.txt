@@ -1,0 +1,22 @@
+Using device: cuda
+Epoch: 0, Train loss: 0.2913943086144161
+
+Epoch: 0, Val loss: 0.20930186700592457
+Epoch: 0, SFT Val loss: 224.32304946899413
+Saving best model: ./models/dpo/epochs_4-batch_2-lr_1e-07-beta_0.1-seed_42-scheduler_False.pt
+Epoch: 1, Train loss: 0.13282854829025809
+
+Epoch: 1, Val loss: 0.18129602345840592
+Epoch: 1, SFT Val loss: 232.807767868042
+Saving best model: ./models/dpo/epochs_4-batch_2-lr_1e-07-beta_0.1-seed_42-scheduler_False.pt
+Epoch: 2, Train loss: 0.06697305514216127
+
+Epoch: 2, Val loss: 0.17357005578194454
+Epoch: 2, SFT Val loss: 241.68117225646972
+Saving best model: ./models/dpo/epochs_4-batch_2-lr_1e-07-beta_0.1-seed_42-scheduler_False.pt
+Epoch: 3, Train loss: 0.027687025165558144
+
+Epoch: 3, Val loss: 0.1735349677256942
+Epoch: 3, SFT Val loss: 257.17014961242677
+Saving best model: ./models/dpo/epochs_4-batch_2-lr_1e-07-beta_0.1-seed_42-scheduler_False.pt
+Wall time in minutes: 42.68801880677541
