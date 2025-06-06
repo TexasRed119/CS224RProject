@@ -1,0 +1,18 @@
+Using device: cuda
+Epoch: 0, Train loss: 0.2536005698935724
+
+Epoch: 0, Val loss: 0.0735157223737879
+Saving best model: ./models/brad/epochs_4-optim_rmsprop-batch_4-lr_1e-05-seed_42-scheduler_False.pt
+Epoch: 1, Train loss: 0.055811180164392786
+
+Epoch: 1, Val loss: 0.060417970182137425
+Saving best model: ./models/brad/epochs_4-optim_rmsprop-batch_4-lr_1e-05-seed_42-scheduler_False.pt
+Epoch: 2, Train loss: 0.07587288925513577
+
+Epoch: 2, Val loss: 0.051446564030211445
+Saving best model: ./models/brad/epochs_4-optim_rmsprop-batch_4-lr_1e-05-seed_42-scheduler_False.pt
+Epoch: 3, Train loss: 0.05130135822926916
+
+Epoch: 3, Val loss: 0.025413639110951465
+Saving best model: ./models/brad/epochs_4-optim_rmsprop-batch_4-lr_1e-05-seed_42-scheduler_False.pt
+Wall time in minutes: 25.276466643810274

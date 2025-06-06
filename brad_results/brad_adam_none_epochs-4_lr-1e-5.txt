@@ -1,0 +1,25 @@
+Using device: cuda
+Epoch: 0, Train loss: 0.15625914042431982
+
+Epoch: 0, Val loss: 0.03829622301871656
+Epoch: 0, Train accuracy: 0.9937499761581421
+Epoch: 0, Val accuracy: 0.9824999570846558
+Saving best model: ./models/brad/epochs_4-optim_adam-batch_4-lr_1e-05-seed_42-scheduler_False.pt
+Epoch: 1, Train loss: 0.054730159266096944
+
+Epoch: 1, Val loss: 0.05028565567734404
+Epoch: 1, Train accuracy: 0.9831249713897705
+Epoch: 1, Val accuracy: 0.9774999618530273
+Epoch: 2, Train loss: 0.03954487064656808
+
+Epoch: 2, Val loss: 0.023401195344648164
+Epoch: 2, Train accuracy: 0.9943749904632568
+Epoch: 2, Val accuracy: 0.9925000071525574
+Saving best model: ./models/brad/epochs_4-optim_adam-batch_4-lr_1e-05-seed_42-scheduler_False.pt
+Epoch: 3, Train loss: 0.02513609517931406
+
+Epoch: 3, Val loss: 0.02172543503526267
+Epoch: 3, Train accuracy: 0.9862499833106995
+Epoch: 3, Val accuracy: 0.9950000047683716
+Saving best model: ./models/brad/epochs_4-optim_adam-batch_4-lr_1e-05-seed_42-scheduler_False.pt
+Wall time in minutes: 37.54918271303177

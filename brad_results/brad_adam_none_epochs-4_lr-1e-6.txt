@@ -1,0 +1,17 @@
+Using device: cuda
+Epoch: 0, Train loss: 0.09826851553441056
+
+Epoch: 0, Val loss: 0.08594482606742532
+Saving best model: ./models/brad/epochs_4-batch_4-lr_1e-06-seed_42-scheduler_False.pt
+Epoch: 1, Train loss: 0.05562260589017015
+
+Epoch: 1, Val loss: 0.05204359537027585
+Saving best model: ./models/brad/epochs_4-batch_4-lr_1e-06-seed_42-scheduler_False.pt
+Epoch: 2, Train loss: 0.050138374116559234
+
+Epoch: 2, Val loss: 0.03568027297493941
+Saving best model: ./models/brad/epochs_4-batch_4-lr_1e-06-seed_42-scheduler_False.pt
+Epoch: 3, Train loss: 0.03928253395619554
+
+Epoch: 3, Val loss: 0.06088832713841935
+Wall time in minutes: 25.6002685546875
