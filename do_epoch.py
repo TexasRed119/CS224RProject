@@ -4,7 +4,11 @@ import torch.nn.functional as F
 from dpo_utils.full_tokenize import full_tokenize
 from dpo_utils.dpo_loss import dpo_loss
 from rloo_utils.brad_loss import bradley_terry_loss
+from rloo_utils.rloo_loss import rloo_loss
 import numpy as np
+from countdown_eval import prompt_template
+from vllm import LLM, SamplingParams
+from rloo import DPO_PATH
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -103,8 +107,6 @@ def brad_do_epoch(model, split, dataloader, tokenizer, optimizer, args, schedule
 
         loss = losses.mean()
         loss_item += loss.item()
-        #accurate_rankings = [l < np.log(2) for l in losses]
-
 
         if curriculum_init:
             all_losses.extend(losses.tolist())
@@ -134,3 +136,69 @@ def brad_accuracy(model, dataloader, tokenizer):
 
 
     return accuracy_item, len(dataloader)
+
+def rloo_do_epoch(model, reward_model, split, dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=False):
+    loss_item = 0
+    all_losses = []
+
+    if split == 'train':
+        model.train()
+    elif split == 'test' or curriculum_init:
+        model.eval()
+
+    for batch in tqdm(dataloader):
+        model.eval()
+        batch_prompt = []
+        for i in range(args.batch_size):
+            nums, tgt = batch["nums"][i], batch["target"][i]
+
+            prompt = prompt_template(nums, tgt)
+            
+            batch_prompt.append(prompt)
+
+        # sampling params for vllm
+        sampling_params = SamplingParams(
+            temperature=args.temp,  # hyperparamter
+            top_p=0.9,
+            max_tokens=1024,
+            stop=None,
+            n=args.k
+        )
+
+        llm = LLM(model=DPO_PATH).to(DEVICE)
+
+        outputs = llm.generate(batch_prompt.to(DEVICE), sampling_params=sampling_params.to(DEVICE))
+
+        x_and_y = []
+        for prompt, request_output in zip(batch_prompt, outputs):
+            for completion in request_output.outputs:
+                full = prompt + " " +  completion.text.strip()
+                x_and_y.append(full)
+
+        x_and_y = tokenizer(x_and_y, return_tensors='pt', padding=True)
+        model.train()
+
+        # we gotta make a prompt mask again...gonna retokinze prompts without the padding
+        prompt_unpadded = tokenizer(batch_prompt, return_tensors=None, padding=False)["input_ids"]
+        prompt_lens = [len(p) for p in prompt_unpadded]
+        prompt_mask = torch.ones_like(x_and_y["input_ids"])
+        for i in range(len(prompt_lens)):
+            prompt_len = prompt_lens[i]
+            prompt_mask[i, :prompt_len-1] = 0
+
+        losses = rloo_loss(model, reward_model, x_and_y, prompt_mask, args)
+
+        loss = losses.mean()
+        loss_item += loss.item()
+
+        if curriculum_init:
+            all_losses.extend(losses.tolist())
+
+        if split == 'train' and not curriculum_init:
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            if args.scheduler:
+                scheduler.step()
+
+    return loss_item, len(dataloader), all_losses
