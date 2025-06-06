@@ -3,6 +3,8 @@ from tqdm import tqdm
 import torch.nn.functional as F
 from dpo_utils.full_tokenize import full_tokenize
 from dpo_utils.dpo_loss import dpo_loss
+from rloo_utils.brad_loss import bradley_terry_loss
+import numpy as np
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -85,3 +87,50 @@ def dpo_do_epoch(model, ref_model, split, dataloader, tokenizer, optimizer, args
 
     return loss_item, len(dataloader), all_losses
 
+
+def brad_do_epoch(model, split, dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=False):
+    loss_item = 0
+    all_losses = []
+
+    if split == 'train':
+        model.train()
+    elif split == 'test' or curriculum_init:
+        model.eval()
+
+    for batch in tqdm(dataloader):
+        inputs_w, inputs_l, mask_w, mask_l, _, _ = full_tokenize(batch, tokenizer)
+        losses = bradley_terry_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model)
+
+        loss = losses.mean()
+        loss_item += loss.item()
+        #accurate_rankings = [l < np.log(2) for l in losses]
+
+
+        if curriculum_init:
+            all_losses.extend(losses.tolist())
+
+        if split == 'train' and not curriculum_init:
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            if args.scheduler:
+                scheduler.step()
+
+    return loss_item, len(dataloader), all_losses
+
+def brad_accuracy(model, dataloader, tokenizer):
+    accuracy_item = 0
+
+    model.eval()
+
+    for batch in tqdm(dataloader):
+        inputs_w, inputs_l, mask_w, mask_l, _, _ = full_tokenize(batch, tokenizer)
+        with torch.no_grad():
+            r_w = model(input_ids=inputs_w.to(DEVICE), attn_mask=mask_w.to(DEVICE)).squeeze()
+            r_l = model(input_ids=inputs_l.to(DEVICE), attn_mask=mask_l.to(DEVICE)).squeeze()
+            accuracy = (r_w > r_l).float().mean()
+
+        accuracy_item += accuracy
+
+
+    return accuracy_item, len(dataloader)

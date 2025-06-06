@@ -20,10 +20,11 @@ class CurriculumDataset(TorchDataset):
             anti,
             prev_indices,
             prev_losses=None,
-            ref_model=None
+            ref_model=None,
+            is_brad=False
         ):
 
-        if ref_model is not None:
+        if ref_model is not None or is_brad == True:
             dataset_dict = load_dataset("json", data_files=dataset_name)
             dataset = dataset_dict["train"]
         else:
