@@ -7,8 +7,9 @@ from rloo_utils.brad_loss import bradley_terry_loss
 from rloo_utils.rloo_loss import rloo_loss
 import numpy as np
 from countdown_eval import prompt_template
-from vllm import LLM, SamplingParams
-from rloo import DPO_PATH
+from countdown_eval import extract_solution
+
+
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -137,7 +138,7 @@ def brad_accuracy(model, dataloader, tokenizer):
 
     return accuracy_item, len(dataloader)
 
-def rloo_do_epoch(model, reward_model, split, dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=False):
+def rloo_do_epoch(model, llm, sampling_params, split, dataloader, tokenizer, optimizer, args, scheduler=None, curriculum_init=False):
     loss_item = 0
     all_losses = []
 
@@ -156,18 +157,13 @@ def rloo_do_epoch(model, reward_model, split, dataloader, tokenizer, optimizer, 
             
             batch_prompt.append(prompt)
 
-        # sampling params for vllm
-        sampling_params = SamplingParams(
-            temperature=args.temp,  # hyperparamter
-            top_p=0.9,
-            max_tokens=1024,
-            stop=None,
-            n=args.k
-        )
 
-        llm = LLM(model=DPO_PATH).to(DEVICE)
+        outputs = llm.generate(batch_prompt, sampling_params=sampling_params)
 
-        outputs = llm.generate(batch_prompt.to(DEVICE), sampling_params=sampling_params.to(DEVICE))
+        all_extracted_outputs = []
+        for request_output in outputs:
+            prompt_completions = [extract_solution(out.text.strip()) for out in request_output.outputs]
+            all_extracted_outputs.append(prompt_completions)
 
         x_and_y = []
         for prompt, request_output in zip(batch_prompt, outputs):
@@ -186,7 +182,7 @@ def rloo_do_epoch(model, reward_model, split, dataloader, tokenizer, optimizer, 
             prompt_len = prompt_lens[i]
             prompt_mask[i, :prompt_len-1] = 0
 
-        losses = rloo_loss(model, reward_model, x_and_y, prompt_mask, args)
+        losses = rloo_loss(model, batch, all_extracted_outputs, x_and_y, prompt_mask, args)
 
         loss = losses.mean()
         loss_item += loss.item()

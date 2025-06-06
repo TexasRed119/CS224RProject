@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoModelForCausalLM, get_linear_schedule_with_warmup
-from dpo_utils.full_tokenize import full_tokenize
 import torch.nn.functional as F
 from datasets import load_dataset
 import argparse
@@ -11,10 +10,9 @@ import random
 import numpy as np
 import time
 import json
-from do_epoch import brad_do_epoch, sft_do_epoch, brad_accuracy
+from do_epoch import brad_do_epoch, brad_accuracy
 from curriculum_dataset import CurriculumDataset
 # from the_streets import a_couple_of_gs
-from sft import SFT_DATASET
 
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
@@ -39,7 +37,7 @@ class RewardModel(nn.Module):
 
         self.base_model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B", sliding_window=None)
         hidden_dim = self.base_model.config.hidden_size
-        self.output_layer = nn.Linear(hidden_dim, 1)  # todo: initialize layer
+        self.output_layer = nn.Linear(hidden_dim, 1)
         ''' for if we want to manually init layer
         nn.init.normal_(self.output_layer.weight, mean=0.0, std=0.02)
         nn.init.zeros_(self.output_layer.bias)
@@ -52,6 +50,7 @@ class RewardModel(nn.Module):
         outputs = self.base_model(input_ids=input_ids, attention_mask=attn_mask, output_hidden_states=True)
         last_hidden_state = outputs.hidden_states[-1][:, -1, :]
         return self.output_layer(last_hidden_state)
+
 
 # bradley terry 
 def main(args):
@@ -151,27 +150,6 @@ def main(args):
                     model_path
                 )
                 best_val_loss = avg_val_loss
-    
-    '''
-    # training
-    for epoch in range(args.num_epochs):
-        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-        for batch in tqdm(train_dataloader):
-            inputs_w, inputs_l, mask_w, mask_l, _, _ = full_tokenize(batch)
-            loss = bradley_terry_loss(inputs_w, inputs_l, mask_w=mask_w, mask_l=mask_l, model=model)
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
-
-        if val_loss < best_val_loss:
-                model_path = f'./models/dpo/epochs_{args.num_epochs}-batch_{args.batch_size}-lr_{args.lr}-beta_{args.beta}-seed_{args.seed}-scheduler_{args.scheduler}.pt'
-                print(f'Saving best model: {model_path}')
-                torch.save(
-                    model.state_dict(),
-                    model_path
-                )
-                best_val_loss = val_loss
-    '''
 
     end_time = time.time()
     total_time = end_time - start_time

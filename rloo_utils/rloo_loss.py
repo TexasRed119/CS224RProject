@@ -1,16 +1,28 @@
 import torch
 import torch.nn.functional as F
 from dpo_utils.dpo_loss import compute_log_prob
+from countdown_eval import compute_score
+
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-def rloo_loss(model, reward_model, x_and_y, prompt_mask, args):
+def rloo_loss(model, batch, all_outputs, x_and_y, prompt_mask, args):
 
-    with torch.no_grad():
-        rewards = reward_model(x_and_y['input_ids'].to(DEVICE), x_and_y['attention_mask'].to(DEVICE))
+    rewards = []
+    for i in range(args.batch_size):
+        example_rewards = []
+        for k in range(args.k):
+            ground_truth = {
+                "target": batch["target"][i],
+                "nums": batch["nums"][i]
+            }
+            reward = compute_score(all_outputs[i][k], ground_truth)
+            example_rewards.append(reward)
+        rewards.append(example_rewards)
+
     # x_and_y rn has shape (batch_size * k, seq_len) rn. we need rewards and log_prob to end up as (batch_size, k, seq_len)
-    rewards = rewards.view(args.batch_size, args.k)
-
+    rewards = torch.tensor(rewards, dtype=torch.float32, device=DEVICE)
+    
     '''
     # have no fear...tomas is here
     # for loop would be sooooo easy but matt's gonna give me shit

@@ -11,6 +11,7 @@ import json
 import numpy as np
 from curriculum_dataset import CurriculumDataset
 from do_epoch import rloo_do_epoch, sft_do_epoch
+from vllm import LLM, SamplingParams
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 DPO_PATH = "models/dpo/epochs_4-batch_2-lr_1e-07-beta_0.1-seed_42-scheduler_False.pt"
@@ -22,28 +23,53 @@ SFT_DATASET = "Asap7772/cog_behav_all_strategies"
 DEVICE = 'cuda'
 print(f"Using device: {DEVICE}")
 
+# making a collate function because we are getting a bug: nums is not always the same length so its not wanting to get batched into tensors
+# so instead we batch into dict of lists, so can be different lengths
+def countdown_collate_fn(batch):
+    batch_dict = {}
+    for key in batch[0]:
+        batch_dict[key] = [d[key] for d in batch]
+    return batch_dict
+
 def main(args):
     start_time = time.time()
 
     set_seed(args.seed)
 
     # load model from DPO (TODO: load SFT instead?)
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, sliding_window=None)
+    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, sliding_window=None).to(DEVICE)
     state_dict = torch.load(DPO_PATH, map_location=DEVICE)
     model.load_state_dict(state_dict)
 
     # load trained bradey terry reward model
+    '''
     reward_model = RewardModel().to(DEVICE)
     brad_state = torch.load(BRADLEY_PATH, map_location=DEVICE)
-    model.load_state_dict(brad_state, strict=True)
-    model.eval()
+    reward_model.load_state_dict(brad_state, strict=True)
+    reward_model.eval()
+    '''
 
+    # vllm loading
+    model.save_pretrained("./rloo_model")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    tokenizer.save_pretrained("./rloo_model")
+
+    llm = LLM(model="./rloo_model")
+
+    # sampling params for vllm
+    sampling_params = SamplingParams(
+        temperature=args.temp,
+        top_p=0.9,
+        max_tokens=1024,
+        stop=None,
+        n=args.k
+    )
+
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
 
     scheduler = None
     if args.scheduler:
-        train_dataset = load_dataset(COUNTDOWN_DATASET, split="train_prefs[-2000:]")
+        train_dataset = load_dataset(COUNTDOWN_DATASET, split="train[-1000:]")
         num_steps = 0
         for i in range(args.num_epochs):
             examples_in_epoch = ((i+1) / args.num_epochs) * len(train_dataset)
@@ -54,8 +80,8 @@ def main(args):
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=num_steps)
 
     
-    test_dataset = load_dataset(COUNTDOWN_DATASET, split="train_prefs[-2500:-2000]")
-    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size)
+    test_dataset = load_dataset(COUNTDOWN_DATASET, split="train[-2400:-2000]")
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, collate_fn=countdown_collate_fn)
 
     sft_test_dataset = load_dataset(SFT_DATASET, split='test')
     sft_test_dataloader = torch.utils.data.DataLoader(sft_test_dataset, batch_size=args.batch_size)
@@ -91,12 +117,12 @@ def main(args):
                     prev_indices = np.copy(train_dataset.indices_to_train)
                     assert len(np.unique(prev_indices)) == len(prev_indices), "No repeated indexes in curriculum epoch."
                 else:
-                    train_dataset = load_dataset(COUNTDOWN_DATASET, split="train_prefs[-2000:]")
-            train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-            train_loss, num_batches, _ = rloo_do_epoch(model, reward_model, 'train', train_dataloader, tokenizer, optimizer, args, scheduler=scheduler)
+                    train_dataset = load_dataset(COUNTDOWN_DATASET, split="train[-2000:]")
+            train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, collate_fn=countdown_collate_fn)
+            train_loss, num_batches, _ = rloo_do_epoch(model, llm, sampling_params,'train', train_dataloader, tokenizer, optimizer, args, scheduler=scheduler)
             print(f"Epoch: {epoch}, Train loss: {train_loss / num_batches}\n")
             with torch.no_grad():
-                val_loss, num_batches, _ = rloo_do_epoch(model, reward_model, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
+                val_loss, num_batches, _ = rloo_do_epoch(model, llm, sampling_params, 'test', test_dataloader, tokenizer, optimizer, args, scheduler=None)
             print(f"Epoch: {epoch}, Val loss: {val_loss / num_batches}")
 
             with torch.no_grad():
@@ -160,9 +186,9 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_epochs', type=int, default=2)
-    parser.add_argument('--batch_size', type=int, default=4) # also k here
+    parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-4)
-    parser.add_argument('--k', type=int, default=6, help='number of samples per prompt')
+    parser.add_argument('--k', type=int, default=4, help='number of samples per prompt')
     parser.add_argument('--temp', type=float, default=0.70, help='temperature in lmm sampling')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     parser.add_argument('--scheduler', action='store_true')

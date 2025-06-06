@@ -20,7 +20,7 @@ MODEL_NAME = "Qwen/Qwen2.5-0.5B"
 SFT_PATH = "BEST_epochs_6-batch_4-lr_1e-05-seed_42-curr_type_none-scheduler_True-static_False-repeat_epochs_None.pt"
 COUNTDOWN_DATASET = "Jiayi-Pan/Countdown-Tasks-3to4"
 #DPO_PATH = "dpo_dataset.json" 
-DPO_PATH = "dpo_dataset_large.json" 
+DPO_DATASET = "dpo_dataset_large.json" 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
@@ -120,8 +120,6 @@ def main(args):
     # use with vLLM
     llm = LLM(model="./sft_model")
 
-    llm = llm
-
     #print("Loading countdown dataset...")
     dataset = load_dataset(COUNTDOWN_DATASET, split="train").shuffle(seed=args.seed)
 
@@ -129,7 +127,7 @@ def main(args):
     dpo_dataset = make_features(llm, dataset)
 
     # save dataset to .json
-    with open(DPO_PATH, "w", encoding="utf-8") as f:
+    with open(DPO_DATASET, "w", encoding="utf-8") as f:
         json.dump(dpo_dataset, f, indent=2, ensure_ascii=False)
 
     end_time = time.time()
